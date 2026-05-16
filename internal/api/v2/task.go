@@ -325,7 +325,7 @@ func (t *Task) Delete(c *gin.Context) {
 				}
 			}
 		}
-		for _, idx := range strings.Split(req.Ids, ",") {
+		for _, idx := range req.Ids {
 			if err := tx.Model(&model.Task{}).
 				Where("task_id", idx).
 				Updates(map[string]any{"deleted_at": time.Now().Unix()}).Error; err != nil {

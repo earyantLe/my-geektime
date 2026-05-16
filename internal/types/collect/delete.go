@@ -1,5 +1,5 @@
 package collect
 
 type DeleteRequest struct {
-	Ids string `json:"ids,omitempty" form:"ids"`
+	Ids []int `json:"ids,omitempty" form:"ids"`
 }

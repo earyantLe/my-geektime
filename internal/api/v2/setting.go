@@ -29,6 +29,8 @@ func (s *Setting) Update(c *gin.Context) {
 	global.CONF.Site.Play.ProxyUrl = req.SitePlayUrls
 	global.CONF.Site.Proxy.ProxyUrl = req.SiteProxyURL
 	global.CONF.Site.Proxy.Urls = req.SiteProxyUrls
+	global.CONF.Site.Cookie.Geektime = req.Cookie
+
 	raw, err := yaml.Marshal(global.CONF)
 	if err != nil {
 		global.FAIL(c, "fail.msg", err)

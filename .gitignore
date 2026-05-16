@@ -31,3 +31,13 @@ go.work.sum
 # custom
 logs/
 site/
+repo/
+node_modules/
+*.db
+.venv/
+__pycache__/
+
+# web
+web/assets/
+web/index.html
+

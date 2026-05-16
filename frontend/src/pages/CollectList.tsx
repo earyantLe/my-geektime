@@ -1,0 +1,594 @@
+import React, { useEffect, useState, useRef, useCallback } from 'react'
+import {
+  getCollectList,
+  deleteCollect,
+  CollectItem,
+} from '@/api/collect'
+import { getDictTree } from '@/api/dict'
+import { retryTask, exportTask } from '@/api/task'
+import { Button, Card, Spinner, Alert, Modal } from '@/components/ui'
+import { LessonDrawer } from '@/components/LessonDrawer'
+import { useAuthStore } from '@/store/auth'
+import { useToast } from '@/components/ui/Toast'
+import { useLessonList } from '@/hooks/useLessonList'
+import {
+  FileText,
+  ExternalLink,
+  Trash2,
+  RefreshCw,
+  Rocket,
+  BookOpen,
+} from 'lucide-react'
+
+const productTypeOptions = [
+  { label: '全部类型', value: 0 },
+  { label: '体系课', value: 1 },
+  { label: '公开课', value: 4 },
+  { label: '线下大会', value: 5 },
+  { label: '社区课', value: 6 },
+  { label: '每日一课', value: 19 },
+  { label: '大厂案例', value: 20 },
+]
+
+export const CollectList: React.FC = () => {
+  const [loading, setLoading] = useState(false)
+  const [items, setItems] = useState<CollectItem[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [perPage] = useState(6)
+  const [category, setCategory] = useState(0)
+  const [prevCategory, setPrevCategory] = useState<number | null>(null)
+  const [collectCategory, setCollectCategory] = useState<any[]>([])
+  const [geektimeDirection, setGeektimeDirection] = useState<any[]>([])
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteIds, setDeleteIds] = useState<string[]>([])
+  const [showRetryModal, setShowRetryModal] = useState(false)
+  const [retryTaskId, setRetryTaskId] = useState('')
+  const [showBackToTop, setShowBackToTop] = useState(false)
+  const [loadMoreLoading, setLoadMoreLoading] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
+  const scrollContainerRef = useRef<HTMLElement | null>(null)
+  const { addToast } = useToast()
+
+  const {
+    lessonList,
+    lessonLoading,
+    lessonTotal,
+    lessonFilters,
+    selectedTask,
+    showLessonDrawer,
+    setShowLessonDrawer,
+    setLessonFilters,
+    openLessonDrawer,
+    handleLessonFilter,
+  } = useLessonList()
+
+  const user = useAuthStore((state) => state.user)
+  const isAdmin = user?.role_id === 1
+
+  useEffect(() => {
+    loadDictData()
+  }, [])
+
+  useEffect(() => {
+    // 只有当 category 真正发生变化时才重新加载数据
+    if (prevCategory !== null && prevCategory === category) {
+      return
+    }
+    
+    setPage(1)
+    setItems([])
+    setHasMore(true)
+    loadData(1, false)
+    setPrevCategory(category)
+  }, [category])
+
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loadMoreLoading && !loading && items.length < total) {
+      loadData(page + 1, true)
+    }
+  }, [hasMore, loadMoreLoading, loading, items.length, total, page])
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadMoreLoading && !loading) {
+          handleLoadMore()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current)
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+      }
+    }
+  }, [hasMore, loadMoreLoading, loading, handleLoadMore])
+
+  useEffect(() => {
+    const mainElement = document.querySelector('main') as HTMLElement
+    if (mainElement) {
+      scrollContainerRef.current = mainElement
+      const handleScroll = () => {
+        setShowBackToTop(mainElement.scrollTop > 500)
+      }
+      mainElement.addEventListener('scroll', handleScroll)
+      return () => mainElement.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
+  const scrollToTop = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const loadDictData = async () => {
+    try {
+      const res = await getDictTree('collectCategory,geektimeCategory')
+      if (res) {
+        setCollectCategory(res.collectCategory || [])
+        setGeektimeDirection(res.geektimeDirection || [])
+      }
+    } catch (error) {
+      console.error('Failed to load dict data', error)
+    }
+  }
+
+  const loadData = async (loadPage = 1, isLoadMore = false) => {
+    if (isLoadMore) {
+      setLoadMoreLoading(true)
+    } else {
+      setLoading(true)
+    }
+    try {
+      const params: any = { page: loadPage, perPage }
+      if (category) params.category = category
+
+      const res = await getCollectList(params)
+      if (isLoadMore) {
+        setItems((prev) => [...prev, ...(res.rows || [])])
+      } else {
+        setItems(res.rows || [])
+      }
+      setTotal(res.count || 0)
+      setPage(loadPage)
+      const newItems = isLoadMore ? [...items, ...(res.rows || [])] : (res.rows || [])
+      setHasMore(newItems.length < (res.count || 0))
+    } catch (error) {
+      console.error('Failed to load collects', error)
+    } finally {
+      if (isLoadMore) {
+        setLoadMoreLoading(false)
+      } else {
+        setLoading(false)
+      }
+    }
+  }
+
+  const handleDelete = (ids: string[]) => {
+    setDeleteIds(ids)
+    setShowDeleteModal(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (deleteIds.length === 0) return
+    try {
+      await deleteCollect(deleteIds)
+      addToast('删除成功', 'success')
+      setShowDeleteModal(false)
+      setDeleteIds([])
+      loadData()
+    } catch (error) {
+      console.error('Failed to delete', error)
+    }
+  }
+
+  const handleRetry = (taskId: string) => {
+    setRetryTaskId(taskId)
+    setShowRetryModal(true)
+  }
+
+  const handleRetryConfirm = async () => {
+    if (!retryTaskId) return
+    try {
+      await retryTask({ pid: retryTaskId, retry: true })
+      addToast('重新下载任务已创建', 'success')
+      setShowRetryModal(false)
+      setRetryTaskId('')
+      loadData()
+    } catch (error) {
+      console.error('Failed to retry', error)
+    }
+  }
+
+  const handleExport = async (taskId: string, type: string) => {
+    try {
+      if (type === 'markdown') {
+        const blob = await exportTask({ pid: taskId, type })
+        const url = window.URL.createObjectURL(blob as Blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${taskId}-${type}.tar.gz`
+        a.click()
+        window.URL.revokeObjectURL(url)
+      } else {
+        await exportTask({ pid: taskId, type })
+        addToast('文档生成成功', 'success')
+        loadData()
+      }
+    } catch (error) {
+      console.error('Failed to export', error)
+      addToast('操作失败', 'error')
+    }
+  }
+
+  const getStatusText = (status: number) => {
+    const map: Record<number, string> = {
+      1: '排队中',
+      2: '处理中',
+      3: '已缓存',
+      4: '异常',
+    }
+    return map[status] || '-'
+  }
+
+  const getTypeText = (type: number) => {
+    const item = productTypeOptions.find((o) => o.value === type)
+    return item?.label || '-'
+  }
+
+  const getDirectionText = (group: number) => {
+    const item = geektimeDirection.find((o) => o.value === group)
+    return item?.label || '-'
+  }
+
+  
+
+  return (
+    <div>
+      <Card header="我的收藏" />
+
+      <Alert variant="info" showIcon className="mt-4">
+        温馨提示：从课程列表批量收藏后，会出现在我的收藏列表
+      </Alert>
+
+      <Card className="mt-4">
+        <div className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-xl p-4 mb-4 border border-purple-100/50">
+          <div className="text-sm font-medium text-gray-700 mb-3">收藏分类</div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setCategory(0)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                category === 0
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+              }`}
+            >
+              全部
+            </button>
+            {collectCategory
+              .filter((item) => item.value !== 0)
+              .map((item) => (
+                <button
+                  key={item.value}
+                  onClick={() => setCategory(Number(item.value))}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    category === Number(item.value)
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Spinner />
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="relative bg-white rounded-xl border-2 border-gray-100 hover:border-purple-300 transition-all duration-300 hover:shadow-lg"
+                >
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="relative flex-shrink-0">
+                        <img
+                          src={item.item.cover}
+                          alt={item.item.task_name}
+                          className="w-20 h-20 rounded-xl object-cover shadow-md"
+                        />
+                        {(item.item.is_audio || item.item.is_video) && (
+                          <div className="absolute -bottom-1 -right-1 flex gap-1">
+                            {item.item.is_audio && (
+                              <span className="px-1.5 py-0.5 bg-purple-500 text-white text-xs rounded-md">音</span>
+                            )}
+                            {item.item.is_video && (
+                              <span className="px-1.5 py-0.5 bg-pink-500 text-white text-xs rounded-md">视</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-800 truncate leading-tight">
+                          {item.item.task_name}
+                        </h3>
+                        <p className="text-sm text-gray-500 truncate mt-1">
+                          {item.item.subtitle}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs text-gray-400">{item.item.author?.name}</span>
+                          {item.item.is_finish && (
+                            <span className="px-1.5 py-0.5 bg-green-100 text-green-600 text-xs rounded">已完结</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-gray-100">
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className="text-gray-400">类型:</span>
+                          <span className="text-gray-600">{getTypeText(item.item.other_type)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-gray-400">方向:</span>
+                          <span className="text-gray-600">{getDirectionText(item.item.other_group)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-gray-400">章节:</span>
+                          <span className="text-gray-600">{item.item.article?.count || 0} 讲</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-gray-400">价格:</span>
+                          <span className="text-gray-600">
+                            {item.item.sale_type === 6 || item.item.sale_type === 7
+                              ? '免费'
+                              : `¥${(item.item.sale / 100).toFixed(2)}`}
+                          </span>
+                        </div>
+                      </div>
+                      {item.item.statistics?.items && (
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                          {Object.entries(item.item.statistics.items).map(([key, count]) => {
+                            if ((count as number) > 0) {
+                              return (
+                                <span key={key} className="flex items-center gap-1">
+                                  <span className={`w-2 h-2 rounded-full ${
+                                    key === '1' ? 'bg-yellow-500' :
+                                    key === '2' ? 'bg-blue-500' :
+                                    key === '3' ? 'bg-green-500' : 'bg-red-500'
+                                  }`} />
+                                  {getStatusText(Number(key))}({count as number})
+                                </span>
+                              )
+                            }
+                            return null
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      {item.item.redirect && (
+                        <div className="relative group">
+                          <Button
+                            variant="light"
+                            size="sm"
+                            onClick={() => window.open(item.item.redirect, '_blank')}
+                            className="!p-2"
+                          >
+                            <ExternalLink size={14} />
+                          </Button>
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+                            源站
+                          </div>
+                        </div>
+                      )}
+                      <div className="relative group">
+                        <Button
+                          variant="light"
+                          size="sm"
+                          onClick={() => openLessonDrawer(item.item)}
+                          className="!p-2"
+                        >
+                          <BookOpen size={14} />
+                        </Button>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+                          课程
+                        </div>
+                      </div>
+                      <div className="relative group">
+                        <Button
+                          variant="light"
+                          size="sm"
+                          onClick={() => handleExport(item.item.task_id, 'markdown')}
+                          className="!p-2"
+                        >
+                          <FileText size={14} />
+                        </Button>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+                          导出
+                        </div>
+                      </div>
+                      {item.item.doc !== undefined ? (
+                        <div className="relative group">
+                          <Button
+                            variant="success"
+                            size="sm"
+                            onClick={() => window.open(item.item.doc, '_blank')}
+                            className="!p-2"
+                          >
+                            <FileText size={14} />
+                          </Button>
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+                            文档
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative group">
+                          <Button
+                            variant="light"
+                            size="sm"
+                            onClick={() => handleExport(item.item.task_id, 'docsite')}
+                            className="!p-2"
+                          >
+                            <FileText size={14} />
+                          </Button>
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+                            生成文档
+                          </div>
+                        </div>
+                      )}
+                      {isAdmin && (
+                        <>
+                          <div className="relative group">
+                            <Button
+                              variant="warning"
+                              size="sm"
+                              onClick={() => handleRetry(item.item.task_id)}
+                              className="!p-2"
+                            >
+                              <RefreshCw size={14} />
+                            </Button>
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+                              重新下载
+                            </div>
+                          </div>
+                          <div className="relative group">
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleDelete([item.id])}
+                              className="!p-2"
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
+                              删除
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  </div>
+              ))}
+            </div>
+            {items.length === 0 && !loading && (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+                <div className="text-lg">暂无数据</div>
+              </div>
+            )}
+            <div ref={loadMoreRef} className="h-4" />
+            {loadMoreLoading && (
+              <div className="flex justify-center py-6">
+                <Spinner size="sm" className="mr-2" />
+                <span className="text-gray-500">加载中...</span>
+              </div>
+            )}
+            {!hasMore && items.length > 0 && (
+              <div className="text-center text-gray-400 text-sm py-6">
+                已加载全部 {total} 条数据
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+
+      {showBackToTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-10 hover:scale-110"
+          title="返回顶部"
+        >
+          <Rocket size={20} />
+        </button>
+      )}
+
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setDeleteIds([])
+        }}
+        title="确认删除"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">确定要删除选中的收藏吗？</p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowDeleteModal(false)
+                setDeleteIds([])
+              }}
+              className="flex-1"
+            >
+              取消
+            </Button>
+            <Button variant="danger" onClick={handleDeleteConfirm} className="flex-1">
+              确定
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showRetryModal}
+        onClose={() => {
+          setShowRetryModal(false)
+          setRetryTaskId('')
+        }}
+        title="确认重新下载"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">确定要重新下载音视频到本地磁盘吗？</p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowRetryModal(false)
+                setRetryTaskId('')
+              }}
+              className="flex-1"
+            >
+              取消
+            </Button>
+            <Button onClick={handleRetryConfirm} className="flex-1">
+              确定
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <LessonDrawer
+        showLessonDrawer={showLessonDrawer}
+        selectedTask={selectedTask}
+        lessonList={lessonList}
+        lessonLoading={lessonLoading}
+        lessonTotal={lessonTotal}
+        lessonPage={1}
+        lessonFilters={lessonFilters}
+        setLessonFilters={setLessonFilters}
+        setShowLessonDrawer={setShowLessonDrawer}
+        handleLessonPageChange={() => {}}
+        handleLessonFilter={handleLessonFilter}
+      />
+    </div>
+  )
+}

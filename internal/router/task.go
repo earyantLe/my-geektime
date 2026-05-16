@@ -14,7 +14,7 @@ func task(public, private *gin.RouterGroup) {
 		private.DELETE("/task/delete", api.Delete)
 		private.POST("/task/retry", api.Retry)
 		private.GET("/task/export", api.Export)
-		private.GET("/task/article/commonts", api.ArticleCommonts)
+		private.GET("/task/article/comments", api.ArticleComments)
 		private.GET("/task/article/discussions", api.ArticleDiscussion)
 	}
 	{

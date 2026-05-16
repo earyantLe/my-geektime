@@ -12,7 +12,4 @@ func base(public, private *gin.RouterGroup) {
 		public.POST("/base/login", api.Login)
 		public.POST("/base/register", api.Register)
 	}
-	{
-		private.POST("/base/refresh/cookie", api.RefreshCookie)
-	}
 }

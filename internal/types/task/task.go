@@ -121,7 +121,7 @@ type DeleteRequest struct {
 	// task pid
 	Pid string `json:"pid,omitempty" form:"pid"`
 	// task ids
-	Ids string `json:"ids,omitempty" form:"ids"`
+	Ids []string `json:"ids,omitempty" form:"ids"`
 }
 
 type TaskKmsRequest struct {

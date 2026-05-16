@@ -60,10 +60,10 @@ func SaveCookie(cookies string, identity string, auth *geek.AuthResponse) func(r
 			Avatar:      authData.Avatar,
 			AccessToken: cookies,
 		}
+		global.CONF.Site.Cookie.Geektime = cookies
 		if err = global.DB.Where(model.User{Uid: identity}).
 			Assign(model.User{
-				Avatar:      authData.Avatar,
-				AccessToken: cookies,
+				Avatar: authData.Avatar,
 			}).
 			FirstOrCreate(&user).Error; err != nil {
 			return err
