@@ -14,7 +14,7 @@ import { LessonDrawer } from '@/components/LessonDrawer'
 import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/components/ui/Toast'
 import { useLessonList } from '@/hooks/useLessonList'
-import { Rocket, Download, RefreshCw, Trash2, Heart, FileText } from 'lucide-react'
+import { Rocket, RefreshCw, Trash2, Heart, FileText } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 
 const productTypeOptions = [

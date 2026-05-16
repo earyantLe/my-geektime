@@ -5,7 +5,7 @@ import (
 	v2 "github.com/zkep/my-geektime/internal/api/v2"
 )
 
-func base(public, private *gin.RouterGroup) {
+func base(public, _ *gin.RouterGroup) {
 	api := v2.NewBase()
 	{
 		public.GET("/base/config", api.Config)

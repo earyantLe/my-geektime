@@ -27,5 +27,8 @@ website:
 	mkdocs gh-deploy --force --no-history
 
 image:
-	docker buildx build --platform linux/amd64,linux/arm64 -t zkep/mygeektime:latest --push .
+	cd frontend && npm install && npm run build
+	cp -r frontend/dist/* web/
+	docker buildx build --platform linux/amd64,linux/arm64 -t zkep/mygeektime:latest .
+	# docker buildx build --platform linux/amd64,linux/arm64 -t zkep/mygeektime:latest --push .
 
