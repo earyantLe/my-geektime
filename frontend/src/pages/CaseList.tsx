@@ -322,7 +322,7 @@ export const CaseList: React.FC = () => {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            确定要缓存 [{confirmItem?.title}] 吗？请在[我的课程]查看详情
+            缓存 [{confirmItem?.title}]后请在[我的课程]查看详情
           </p>
           <div className="flex gap-3">
             <Button

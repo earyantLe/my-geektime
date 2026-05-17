@@ -241,7 +241,7 @@ export const Setting: React.FC = () => {
                     variant="danger"
                     size="sm"
                     onClick={() => handleProxyUrlRemove(index)}
-                    className="whitespace-nowrap"
+                    className="shrink-0"
                   >
                     删除
                   </Button>
@@ -268,7 +268,7 @@ export const Setting: React.FC = () => {
                     variant="danger"
                     size="sm"
                     onClick={() => handlePlayUrlRemove(index)}
-                    className="whitespace-nowrap"
+                    className="shrink-0"
                   >
                     删除
                   </Button>
@@ -280,11 +280,11 @@ export const Setting: React.FC = () => {
             </div>
           </div>
 
-          <div className="border-t pt-4 flex justify-center gap-4 mt-8 mb-4">
-            <Button onClick={handleSave} disabled={saving}>
+          <div className="border-t pt-6 flex justify-center gap-4 mt-12 mb-6">
+            <Button onClick={handleSave} disabled={saving} size="md" className="px-8 py-2.5">
               {saving ? '保存中...' : '保存'}
             </Button>
-            <Button variant="light" onClick={loadSettings}>
+            <Button variant="light" onClick={loadSettings} size="md" className="px-8 py-2.5">
               重置
             </Button>
           </div>

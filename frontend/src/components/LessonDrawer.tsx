@@ -194,11 +194,11 @@ export const LessonDrawer: React.FC<LessonDrawerProps> = ({
                   </div>
                   <div>
                     <span className="text-gray-500">音频: </span>
-                    <span className="font-medium">{taskInfo.is_audio ? '支持' : '不支持'}</span>
+                    <span className="font-medium">{taskInfo.is_audio ? '支持' : '-'}</span>
                   </div>
                   <div>
                     <span className="text-gray-500">视频: </span>
-                    <span className="font-medium">{taskInfo.is_video ? '支持' : '不支持'}</span>
+                    <span className="font-medium">{taskInfo.is_video ? '支持' : '-'}</span>
                   </div>
                 </div>
               </div>
@@ -277,59 +277,58 @@ export const LessonDrawer: React.FC<LessonDrawerProps> = ({
             ) : lessonList.length > 0 ? (
               <>
                 <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-700 mb-3">课程章节 ({lessonTotal} 讲)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
                   {lessonList.map((lesson, index) => {
                     const globalIndex = (lessonPage - 1) * 10 + index
                     return (
                       <div
                         key={lesson.task_id}
                         onClick={() => handleLessonClick(lesson.task_id, globalIndex)}
-                        className="p-4 bg-white rounded-lg border border-gray-200 hover:border-purple-300 transition-colors cursor-pointer"
+                        className="border rounded-lg p-3 hover:border-primary-300 hover:bg-primary-50 transition-all cursor-pointer"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400">#{globalIndex + 1}</span>
-                              <h4 className="font-medium text-gray-800">{lesson.task_name}</h4>
+                        <div className="flex items-start gap-2">
+                          <div className="w-8 h-8 rounded bg-primary-100 flex items-center justify-center text-primary-600 text-xs font-bold flex-shrink-0">
+                            {String(globalIndex + 1).padStart(2, '0')}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h5 className="text-sm font-medium text-gray-800 truncate">
+                              {lesson.task_name}
+                            </h5>
+                            {lesson.subtitle && lesson.subtitle !== '无' && (
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                {lesson.subtitle}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                              {lesson.statistics?.items && Object.entries(lesson.statistics.items).map(([key, count]) => {
+                                if ((count as number) > 0) {
+                                  return (
+                                    <span key={key} className="flex items-center gap-1">
+                                      <span className={`w-2 h-2 rounded-full ${
+                                        key === '1' ? 'bg-yellow-500' :
+                                        key === '2' ? 'bg-blue-500' :
+                                        key === '3' ? 'bg-green-500' : 'bg-red-500'
+                                      }`} />
+                                      {getStatusText(Number(key))}({count as number})
+                                    </span>
+                                  )
+                                }
+                                return null
+                              })}
                             </div>
-                            {lesson.subtitle && (
-                              <p className="text-sm text-gray-500 mt-1">{lesson.subtitle}</p>
-                            )}
                           </div>
-                          <div className="flex items-center gap-2">
-                            {lesson.is_audio && (
-                              <span className="px-2 py-0.5 bg-primary-100 text-primary-600 text-xs rounded">音频</span>
-                            )}
-                            {lesson.is_video && (
-                              <span className="px-2 py-0.5 bg-primary-200 text-primary-700 text-xs rounded">视频</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
-                          {lesson.statistics?.items && Object.entries(lesson.statistics.items).map(([key, count]) => {
-                            if ((count as number) > 0) {
-                              return (
-                                <span key={key} className="flex items-center gap-1">
-                                  <span className={`w-2 h-2 rounded-full ${
-                                    key === '1' ? 'bg-yellow-500' :
-                                    key === '2' ? 'bg-blue-500' :
-                                    key === '3' ? 'bg-green-500' : 'bg-red-500'
-                                  }`} />
-                                  {getStatusText(Number(key))}({count as number})
-                                </span>
-                              )
-                            }
-                            return null
-                          })}
                         </div>
                       </div>
                     )
                   })}
                 </div>
-                {lessonTotal > 10 && (
+                </div>
+                {lessonTotal > 9 && (
                   <div className="flex justify-center pt-4">
                     <Pagination
                       total={lessonTotal}
-                      pageSize={10}
+                      pageSize={9}
                       current={lessonPage}
                       onChange={handleLessonPageChange}
                     />

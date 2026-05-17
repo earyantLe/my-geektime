@@ -26,7 +26,7 @@ export const useLessonList = () => {
       setLessonLoading(true)
     }
     try {
-      const params: any = { page, perPage: 10, task_pid: taskId }
+      const params: any = { page, perPage: 9, task_pid: taskId }
       if (filters.xstatus) params.xstatus = filters.xstatus
       if (filters.keywords) params.keywords = filters.keywords
 

@@ -3,12 +3,11 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	v2 "github.com/zkep/my-geektime/internal/api/v2"
-	"github.com/zkep/my-geektime/internal/middleware"
 )
 
 func product(_, private *gin.RouterGroup) {
 	api := v2.NewProduct()
-	p := private.Group("/product", middleware.AccessToken())
+	p := private.Group("/product")
 	{
 		p.GET("/pvip/list", api.PvipProductList)
 		p.GET("/list", api.ProductList)
