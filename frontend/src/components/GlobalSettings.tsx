@@ -5,14 +5,18 @@ import { themes, getCurrentTheme, setTheme } from '@/utils/theme'
 export const GlobalSettings: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [currentTheme, setCurrentTheme] = useState(getCurrentTheme())
-  const [position, setPosition] = useState({ x: 0, y: 0 })
+  // 初始化位置为右侧中间，避免页面加载时的飞行动画
+  const [position, setPosition] = useState(() => ({
+    x: typeof window !== 'undefined' ? window.innerWidth - 20 : 0,
+    y: typeof window !== 'undefined' ? window.innerHeight / 2 : 0,
+  }))
   const [isDragging, setIsDragging] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dragStartRef = useRef({ x: 0, y: 0 })
   const buttonStartRef = useRef({ x: 0, y: 0 })
   const positionRef = useRef({ x: 0, y: 0 }) // 保存最新的 position
 
-  // 初始化位置
+  // 监听窗口大小变化，更新位置
   useEffect(() => {
     const updatePosition = () => {
       const x = window.innerWidth - 20 // 右侧靠边，隐藏一半（按钮宽度40px，一半是20px）
@@ -21,7 +25,6 @@ export const GlobalSettings: React.FC = () => {
       setPosition(newPos)
       positionRef.current = newPos // 同步更新 ref
     }
-    updatePosition()
     window.addEventListener('resize', updatePosition)
     return () => window.removeEventListener('resize', updatePosition)
   }, [])
