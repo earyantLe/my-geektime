@@ -5,8 +5,6 @@ This is a tool to obtain the geektime  articles docs
 
 ---
 
-### [Docs](https://zkep.github.io/my-geektime/) | [Show Time](https://my-geektime.anyfun.tech)
-
 
 #### Install
 
