@@ -1,6 +1,6 @@
 module github.com/zkep/my-geektime
 
-go 1.24.2
+go 1.25
 
 require (
 	github.com/JohannesKaufmann/dom v0.2.0

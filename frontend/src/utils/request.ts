@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useLoadingStore } from '@/store/loading'
 
 // 创建自定义事件用于显示 Toast 消息
 export const showErrorToastEvent = new EventTarget()
@@ -14,6 +15,9 @@ const request = axios.create({
 
 request.interceptors.request.use(
   (config) => {
+    // 显示 loading
+    useLoadingStore.getState().showLoading()
+    
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -21,12 +25,17 @@ request.interceptors.request.use(
     return config
   },
   (error) => {
+    // 请求错误时隐藏 loading
+    useLoadingStore.getState().hideLoading()
     return Promise.reject(error)
   }
 )
 
 request.interceptors.response.use(
   (response) => {
+    // 响应成功时隐藏 loading
+    useLoadingStore.getState().hideLoading()
+    
     if (response.config.responseType === 'blob') {
       return response.data
     }
@@ -53,6 +62,9 @@ request.interceptors.response.use(
     return res
   },
   (error) => {
+    // 响应错误时隐藏 loading
+    useLoadingStore.getState().hideLoading()
+    
     if (error.response?.status === 401) {
       localStorage.clear()
       window.location.href = '/login'

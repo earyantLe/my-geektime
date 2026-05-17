@@ -190,7 +190,7 @@ export const LessonList: React.FC = () => {
       <Card header="每日一课" />
 
       <Card className="mt-4">
-        <div className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-xl p-4 mb-4 border border-purple-100/50">
+        <div className="bg-gradient-to-r from-primary-50/50 to-primary-100/50 rounded-xl p-4 mb-4 border border-primary-100/50">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">课程方向</label>
@@ -198,8 +198,8 @@ export const LessonList: React.FC = () => {
                 <button
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     filters.direction === 0
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                      ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                   }`}
                   onClick={() => setFilters({ ...filters, direction: 0, label_id: 0 })}
                 >
@@ -210,8 +210,8 @@ export const LessonList: React.FC = () => {
                     key={item.value}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       filters.direction === item.value
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                        ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                     }`}
                     onClick={() => setFilters({ ...filters, direction: item.value, label_id: 0 })}
                   >
@@ -240,8 +240,8 @@ export const LessonList: React.FC = () => {
                           key={item.value}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                             filters.label_id === item.value
-                              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                              : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                              ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
+                              : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                           }`}
                           onClick={() => setFilters({ ...filters, label_id: item.value })}
                         >
@@ -250,7 +250,7 @@ export const LessonList: React.FC = () => {
                       ))}
                       {shouldShowMore && (
                         <button
-                          className="px-3 py-1.5 rounded-lg text-sm font-medium text-purple-600 bg-purple-50 border border-purple-200 hover:bg-purple-100 transition-all duration-200"
+                          className="px-3 py-1.5 rounded-lg text-sm font-medium text-primary-600 bg-primary-50 border border-primary-200 hover:bg-primary-100 transition-all duration-200"
                           onClick={() => setShowAllCategories(!showAllCategories)}
                         >
                           {showAllCategories ? '收起' : `更多 (${allOptions.length - displayCount})`}
@@ -453,7 +453,7 @@ export const LessonList: React.FC = () => {
         {detailItem && (
           <div className="space-y-6">
             {/* Article Info Header */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+            <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4">
               <h3 className="text-xl font-bold text-gray-800 mb-3">{detailItem.title}</h3>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
@@ -486,7 +486,7 @@ export const LessonList: React.FC = () => {
                 {articleDetail.video?.hls_medias && articleDetail.video.hls_medias.length > 0 && (
                   <div className="mb-4">
                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                      <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                      <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                       视频播放
                     </h4>
                     <video
@@ -506,7 +506,7 @@ export const LessonList: React.FC = () => {
                 {articleDetail.video_preview?.medias && !articleDetail.video?.hls_medias && (
                   <div className="mb-4">
                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                      <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                      <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                       预览视频
                     </h4>
                     <video
@@ -523,7 +523,7 @@ export const LessonList: React.FC = () => {
                 {articleDetail.audio?.url && !articleDetail.video?.hls_medias && !articleDetail.video_preview?.medias && (
                   <div className="mb-4">
                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                      <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                      <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                       音频播放
                     </h4>
                     <audio
@@ -543,7 +543,7 @@ export const LessonList: React.FC = () => {
                 {articleDetail.content && (
                   <div>
                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                      <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                      <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                       文章内容
                     </h4>
                     <div 

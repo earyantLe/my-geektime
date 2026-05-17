@@ -261,14 +261,14 @@ export const CollectList: React.FC = () => {
       </Alert>
 
       <Card className="mt-4">
-        <div className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-xl p-4 mb-4 border border-purple-100/50">
+        <div className="bg-gradient-to-r from-primary-50/50 to-primary-100/50 rounded-xl p-4 mb-4 border border-primary-100/50">
           <div className="text-sm font-medium text-gray-700 mb-3">收藏分类</div>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setCategory(0)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 category === 0
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                  ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               }`}
             >
@@ -282,7 +282,7 @@ export const CollectList: React.FC = () => {
                   onClick={() => setCategory(Number(item.value))}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     category === Number(item.value)
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                      ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
                       : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                   }`}
                 >
@@ -315,10 +315,10 @@ export const CollectList: React.FC = () => {
                         {(item.item.is_audio || item.item.is_video) && (
                           <div className="absolute -bottom-1 -right-1 flex gap-1">
                             {item.item.is_audio && (
-                              <span className="px-1.5 py-0.5 bg-purple-500 text-white text-xs rounded-md">音</span>
+                              <span className="px-1.5 py-0.5 bg-primary-500 text-white text-xs rounded-md">音</span>
                             )}
                             {item.item.is_video && (
-                              <span className="px-1.5 py-0.5 bg-pink-500 text-white text-xs rounded-md">视</span>
+                              <span className="px-1.5 py-0.5 bg-primary-600 text-white text-xs rounded-md">视</span>
                             )}
                           </div>
                         )}
@@ -511,7 +511,7 @@ export const CollectList: React.FC = () => {
       {showBackToTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-10 hover:scale-110"
+          className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-white text-primary-600 border-2 border-primary-300 shadow-lg hover:bg-primary-50 hover:border-primary-400 transition-all duration-300 flex items-center justify-center z-10 hover:scale-110"
           title="返回顶部"
         >
           <Rocket size={20} />

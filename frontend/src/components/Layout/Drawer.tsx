@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { clsx } from 'clsx'
 import {
   BookOpen,
@@ -64,6 +64,7 @@ interface DrawerProps {
 
 export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, openMenus, onToggleMenu }) => {
   const user = useAuthStore((state) => state.user)
+  const navigate = useNavigate()
   const [drawerWidth, setDrawerWidth] = useState<number>(288) // w-72 = 288px
   const isResizing = useRef(false)
   const startX = useRef(0)
@@ -132,20 +133,26 @@ export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, openMenus, onTo
         style={{ width: drawerWidth }}
       >
         <div
-          className="absolute right-0 top-0 bottom-0 w-4 cursor-grab hover:bg-purple-500/20 transition-colors group active:cursor-grabbing"
+          className="absolute right-0 top-0 bottom-0 w-4 cursor-grab hover:bg-primary-500/20 transition-colors group active:cursor-grabbing"
           onMouseDown={handleMouseDown}
         >
-          <div className="absolute right-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-gray-300 group-hover:bg-purple-500 rounded-full transition-colors" />
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-gray-300 group-hover:bg-primary-500 rounded-full transition-colors" />
         </div>
         <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-              <BookOpen className="w-5 h-5 text-white" />
+          <button
+            onClick={() => {
+              navigate('/')
+              onClose()
+            }}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            <div className="p-2.5 bg-primary-100 rounded-xl">
+              <BookOpen className="w-5 h-5 text-primary-600" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold text-primary-700">
               我的极客时间
             </h1>
-          </div>
+          </button>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -163,7 +170,7 @@ export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, openMenus, onTo
                     className="w-full flex items-center justify-between px-3 py-2.5 text-left rounded-xl hover:bg-gray-100 transition-colors text-gray-700"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-purple-500">{item.icon}</span>
+                      <span className="text-primary-500">{item.icon}</span>
                       <span className="font-medium">{item.label}</span>
                     </div>
                     {openMenus.has(item.label) ? (
@@ -183,7 +190,7 @@ export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, openMenus, onTo
                             clsx(
                               'block px-3 py-2.5 rounded-xl text-sm transition-colors',
                               isActive
-                                ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-700 font-medium'
+                                ? 'bg-primary-50 text-primary-700 font-medium'
                                 : 'text-gray-600 hover:bg-gray-100'
                             )
                           }
@@ -202,12 +209,12 @@ export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, openMenus, onTo
                     clsx(
                       'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors',
                       isActive
-                        ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-700 font-medium'
+                        ? 'bg-primary-50 text-primary-700 font-medium'
                         : 'text-gray-600 hover:bg-gray-100'
                     )
                   }
                 >
-                  <span className="text-purple-500">{item.icon}</span>
+                  <span className="text-primary-500">{item.icon}</span>
                   <span className="font-medium">{item.label}</span>
                 </NavLink>
               )}

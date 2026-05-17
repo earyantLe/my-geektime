@@ -6,7 +6,6 @@ PROJECT:=my-geektime
 all: build
 
 build:
-	go vet .
 	go build -ldflags "-X main.buildTime=`date +%Y%m%d.%H:%M:%S` -X main.buildCommit=`git rev-parse --short=12 HEAD` -X main.buildBranch=`git branch --show-current`"
 
 
@@ -27,8 +26,6 @@ website:
 	mkdocs gh-deploy --force --no-history
 
 image:
-	cd frontend && npm install && npm run build
-	cp -r frontend/dist/* web/
-	docker buildx build --platform linux/amd64,linux/arm64 -t zkep/mygeektime:latest .
-	# docker buildx build --platform linux/amd64,linux/arm64 -t zkep/mygeektime:latest --push .
+	cd frontend && npm install && npm run build && cp -r dist/* ../web/
+	docker buildx build --platform linux/amd64,linux/arm64 -t zkep/mygeektime:latest --push .
 

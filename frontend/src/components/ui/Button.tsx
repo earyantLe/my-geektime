@@ -14,13 +14,13 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const variants = {
-    primary: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-md hover:shadow-lg',
+    primary: 'bg-primary-500 text-white hover:bg-primary-600 shadow-md hover:shadow-lg',
     secondary: 'bg-gray-500 text-white hover:bg-gray-600',
-    danger: 'bg-gradient-to-r from-red-500 to-rose-500 text-white hover:from-red-600 hover:to-rose-600 shadow-md hover:shadow-lg',
-    success: 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-md hover:shadow-lg',
-    warning: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-md hover:shadow-lg',
+    danger: 'bg-red-500 text-white hover:bg-red-600 shadow-md hover:shadow-lg',
+    success: 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg',
+    warning: 'bg-amber-500 text-white hover:bg-amber-600 shadow-md hover:shadow-lg',
     light: 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white border border-gray-200 hover:border-purple-300',
-    info: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 shadow-md hover:shadow-lg',
+    info: 'bg-blue-500 text-white hover:bg-blue-600 shadow-md hover:shadow-lg',
   }
 
   const sizes = {

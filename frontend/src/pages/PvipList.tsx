@@ -209,7 +209,7 @@ export const PvipList: React.FC = () => {
       <Card header="体系/公开/线下大会" />
 
       <Card className="mt-4">
-        <div className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-xl p-4 mb-4 border border-purple-100/50">
+        <div className="bg-gradient-to-r from-primary-50/50 to-primary-100/50 rounded-xl p-4 mb-4 border border-primary-100/50">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">课程方向</label>
@@ -217,8 +217,8 @@ export const PvipList: React.FC = () => {
                 <button
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     filters.direction === 0
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                      ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                   }`}
                   onClick={() => setFilters({ ...filters, direction: 0, tag: 0 })}
                 >
@@ -229,8 +229,8 @@ export const PvipList: React.FC = () => {
                     key={item.value}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       filters.direction === item.value
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                        ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                     }`}
                     onClick={() => setFilters({ ...filters, direction: item.value, tag: 0 })}
                   >
@@ -259,8 +259,8 @@ export const PvipList: React.FC = () => {
                           key={item.value}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                             filters.tag === item.value
-                              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                              : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                              ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
+                              : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                           }`}
                           onClick={() => setFilters({ ...filters, tag: item.value })}
                         >
@@ -269,7 +269,7 @@ export const PvipList: React.FC = () => {
                       ))}
                       {shouldShowMore && (
                         <button
-                          className="px-3 py-1.5 rounded-lg text-sm font-medium text-purple-600 bg-purple-50 border border-purple-200 hover:bg-purple-100 transition-all duration-200"
+                          className="px-3 py-1.5 rounded-lg text-sm font-medium text-primary-600 bg-primary-50 border border-primary-200 hover:bg-primary-100 transition-all duration-200"
                           onClick={() => setShowAllCategories(!showAllCategories)}
                         >
                           {showAllCategories ? '收起' : `更多 (${allOptions.length - displayCount})`}
@@ -550,9 +550,9 @@ export const PvipList: React.FC = () => {
 
             {/* Author Introduction */}
             {detailItem.author?.intro && (
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+              <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-700 mb-2 flex items-center">
-                  <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                  <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                   作者简介
                 </h4>
                 <p className="text-gray-600 text-sm leading-relaxed">{detailItem.author.intro}</p>
@@ -563,7 +563,7 @@ export const PvipList: React.FC = () => {
             {detailItem.intro_html && (
               <div>
                 <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                  <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                  <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                   课程介绍
                 </h4>
                 <div 

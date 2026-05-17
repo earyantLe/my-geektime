@@ -27,17 +27,17 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: () => void }> = ({ toast, on
   }
 
   const variants = {
-    success: 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-400/50 text-green-100',
-    error: 'bg-gradient-to-r from-red-500/20 to-pink-500/20 border-red-400/50 text-red-100',
-    warning: 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-400/50 text-yellow-100',
-    info: 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-400/50 text-blue-100',
+    success: 'bg-green-50 border-green-200 text-green-800',
+    error: 'bg-red-50 border-red-200 text-red-800',
+    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+    info: 'bg-blue-50 border-blue-200 text-blue-800',
   }
 
   const iconColors = {
-    success: 'text-green-400',
-    error: 'text-red-400',
-    warning: 'text-yellow-400',
-    info: 'text-blue-400',
+    success: 'text-green-600',
+    error: 'text-red-600',
+    warning: 'text-yellow-600',
+    info: 'text-blue-600',
   }
 
   const Icon = icons[toast.type]

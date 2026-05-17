@@ -84,11 +84,11 @@ export const ArticleList: React.FC<ArticleListProps> = ({ productId }) => {
           {articles.map((article) => (
             <div
               key={article.id}
-              className="border rounded-lg p-3 hover:border-purple-300 hover:bg-purple-50 transition-all cursor-pointer"
+              className="border rounded-lg p-3 hover:border-primary-300 hover:bg-primary-50 transition-all cursor-pointer"
               onClick={() => handleViewArticleDetail(article)}
             >
               <div className="flex items-start gap-2">
-                <div className="w-8 h-8 rounded bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                <div className="w-8 h-8 rounded bg-primary-100 flex items-center justify-center text-primary-600 text-xs font-bold flex-shrink-0">
                   {article.article_title.substring(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">

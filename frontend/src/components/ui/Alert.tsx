@@ -23,7 +23,7 @@ export const Alert: React.FC<AlertProps> = ({
     info: 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-blue-800 border-blue-200/50',
     success: 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-800 border-green-200/50',
     warning: 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 text-yellow-800 border-yellow-200/50',
-    error: 'bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-800 border-red-200/50',
+    error: 'bg-gradient-to-r from-red-500/10 to-primary-500/10 text-red-800 border-red-200/50',
   }
 
   const icons = {

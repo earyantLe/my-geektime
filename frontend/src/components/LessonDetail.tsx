@@ -448,7 +448,7 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
     return (
       <button
         onClick={scrollToTop}
-        className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-[95] hover:scale-110"
+        className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-white text-primary-600 border-2 border-primary-300 shadow-lg hover:bg-primary-50 hover:border-primary-400 transition-all duration-300 flex items-center justify-center z-[95] hover:scale-110"
         title="返回顶部"
       >
         <Rocket size={20} />
@@ -552,7 +552,7 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
 
       <div className="fixed right-0 top-0 h-full w-full max-w-4xl bg-white shadow-2xl overflow-hidden z-[90]">
         <div className="h-full flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+          <div className="flex items-center justify-between p-4 border-b border-primary-100 bg-gradient-to-r from-primary-50 to-primary-100">
             <div className="flex-1">
               <h3 className="font-semibold text-gray-800">
                 {taskInfo?.task.task_name || '加载中...'}
@@ -611,7 +611,7 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
                   <div className="relative group">
                     <a
                       href={`/v2/task/download?id=${taskId}&type=markdown`}
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors text-sm"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
                     >
                       <FileText size={14} />
                     </a>
@@ -656,7 +656,7 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
 
                 <div className="mt-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <MessageCircle size={18} className="text-purple-500" />
+                    <MessageCircle size={18} className="text-primary-500" />
                     <h4 className="font-semibold text-gray-800">评论列表</h4>
                     <span className="text-sm text-gray-500">({commentsTotal})</span>
                   </div>
@@ -698,7 +698,7 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
                                 <div className="mt-3">
                                   <button
                                     onClick={() => toggleDiscussions(comment.id)}
-                                    className="text-xs text-purple-500 hover:text-purple-600 flex items-center gap-1"
+                                    className="text-xs text-primary-500 hover:text-primary-600 flex items-center gap-1"
                                   >
                                     {expandedDiscussions.has(comment.id) ? '收起' : '展开'} ({comment.discussion_count})
                                   </button>
@@ -774,7 +774,7 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
                                           <button
                                             onClick={() => loadMoreDiscussions(comment.id)}
                                             disabled={comment.discussionsLoading}
-                                            className="px-3 py-1 text-xs text-purple-500 hover:text-purple-600 disabled:opacity-50"
+                                            className="px-3 py-1 text-xs text-primary-500 hover:text-primary-600 disabled:opacity-50"
                                           >
                                             {comment.discussionsLoading ? '加载中...' : '加载更多'}
                                           </button>
@@ -799,7 +799,7 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
                               }
                             }}
                             disabled={commentsLoading}
-                            className="px-4 py-2 text-sm text-purple-500 hover:text-purple-600 disabled:opacity-50"
+                            className="px-4 py-2 text-sm text-primary-500 hover:text-primary-600 disabled:opacity-50"
                           >
                             {commentsLoading ? '加载中...' : '加载更多'}
                           </button>

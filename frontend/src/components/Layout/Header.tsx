@@ -1,5 +1,6 @@
 import React from 'react'
 import { Menu } from 'lucide-react'
+import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -14,9 +15,12 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       >
         <Menu size={24} className="text-gray-600" />
       </button>
-      <h2 className="ml-3 text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+      <h2 className="ml-3 text-lg font-semibold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
         管理后台
       </h2>
+      <div className="ml-auto">
+        <ThemeSwitcher />
+      </div>
     </header>
   )
 }

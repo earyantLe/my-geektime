@@ -72,7 +72,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       onClick={() => onToggleSelect(item.task_id)}
     >
       {isSelected && (
-        <div className="absolute top-2 right-2 w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center z-10">
+        <div className="absolute top-2 right-2 w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center z-10">
           <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
@@ -89,10 +89,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {(item.is_audio || item.is_video) && (
               <div className="absolute -bottom-1 -right-1 flex gap-1">
                 {item.is_audio && (
-                  <span className="px-1.5 py-0.5 bg-purple-500 text-white text-xs rounded-md">音</span>
+                  <span className="px-1.5 py-0.5 bg-primary-500 text-white text-xs rounded-md">音</span>
                 )}
                 {item.is_video && (
-                  <span className="px-1.5 py-0.5 bg-pink-500 text-white text-xs rounded-md">视</span>
+                  <span className="px-1.5 py-0.5 bg-primary-600 text-white text-xs rounded-md">视</span>
                 )}
               </div>
             )}

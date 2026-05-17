@@ -78,14 +78,17 @@ export const Sidebar: React.FC = () => {
 
   return (
     <nav className="hidden lg:flex items-center justify-between px-6 py-3 bg-white/80 backdrop-blur-xl border-b border-white/20 relative z-10">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
-          <BookOpen className="w-4 h-4 text-white" />
+      <button
+        onClick={() => navigate('/')}
+        className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+      >
+        <div className="p-2 bg-primary-100 rounded-lg">
+          <BookOpen className="w-4 h-4 text-primary-600" />
         </div>
-        <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+        <span className="text-lg font-bold text-primary-700">
           我的极客时间
         </span>
-      </div>
+      </button>
 
       <div className="flex items-center gap-1">
         {visibleItems.map((item) => (
@@ -99,11 +102,11 @@ export const Sidebar: React.FC = () => {
               className={clsx(
                 'flex items-center gap-2 px-4 py-2 rounded-xl transition-colors',
                 activeDropdown === item.label
-                  ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-700'
+                  ? 'bg-primary-50 text-primary-700'
                   : 'text-gray-600 hover:bg-white/50'
               )}
             >
-              <span className="text-purple-500">{item.icon}</span>
+              <span className="text-primary-500">{item.icon}</span>
               <span className="font-medium">{item.label}</span>
               {item.children && <ChevronDown size={14} />}
             </button>
@@ -118,7 +121,7 @@ export const Sidebar: React.FC = () => {
                       clsx(
                         'block px-4 py-2 text-sm transition-colors',
                         isActive
-                          ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-700 font-medium'
+                          ? 'bg-primary-50 text-primary-700 font-medium'
                           : 'text-gray-600 hover:bg-gray-100'
                       )
                     }
@@ -156,7 +159,7 @@ export const Sidebar: React.FC = () => {
               />
             ) : null}
             <div
-              className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center avatar-fallback"
+              className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center avatar-fallback"
               style={{ display: user?.avatar ? 'none' : 'flex' }}
             >
               <User className="w-4 h-4 text-white" />

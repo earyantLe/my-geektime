@@ -361,7 +361,7 @@ export const TaskList: React.FC = () => {
       <Card header="我的课程" />
 
       <Card className="mt-4">
-        <div className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-xl p-4 mb-4 border border-purple-100/50">
+        <div className="bg-gradient-to-r from-primary-50/50 to-primary-100/50 rounded-xl p-4 mb-4 border border-primary-100/50">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">课程方向</label>
@@ -369,8 +369,8 @@ export const TaskList: React.FC = () => {
                 <button
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     filters.direction === 0
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                      ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                   }`}
                   onClick={() => setFilters({ ...filters, direction: 0, tag: 0 })}
                 >
@@ -381,8 +381,8 @@ export const TaskList: React.FC = () => {
                     key={item.value}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       filters.direction === item.value
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                        ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                     }`}
                     onClick={() => {
                       setFilters({ ...filters, direction: item.value, tag: 0 })
@@ -406,8 +406,8 @@ export const TaskList: React.FC = () => {
                   <button
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       filters.tag === 0
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                        ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                     }`}
                     onClick={() => setFilters({ ...filters, tag: 0 })}
                   >
@@ -421,8 +421,8 @@ export const TaskList: React.FC = () => {
                         key={item.value}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                           filters.tag === item.value
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                            : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                            ? 'bg-primary-500/10 text-primary-600 border border-primary-300 shadow-sm'
+                            : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                         }`}
                         onClick={() => setFilters({ ...filters, tag: item.value })}
                       >
@@ -431,7 +431,7 @@ export const TaskList: React.FC = () => {
                     ))}
                   {geektimeCategory.find((d) => d.value === filters.direction)?.children?.length > 10 && (
                     <button
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors"
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
                       onClick={() => setShowAllCategories(!showAllCategories)}
                     >
                       {showAllCategories ? '收起' : '展开更多'}
@@ -472,8 +472,8 @@ export const TaskList: React.FC = () => {
         </div>
 
         {selectedItems.size > 0 && (
-          <div className="bg-purple-50 rounded-lg p-3 mb-4 flex items-center justify-between">
-            <span className="text-sm text-purple-600">
+          <div className="bg-primary-50 rounded-lg p-3 mb-4 flex items-center justify-between">
+            <span className="text-sm text-primary-600">
               已选择 <span className="font-semibold">{selectedItems.size}</span> 个课程
             </span>
             <div className="flex gap-2">
@@ -565,7 +565,7 @@ export const TaskList: React.FC = () => {
       {showBackToTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-10 hover:scale-110"
+          className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-white text-primary-600 border-2 border-primary-300 shadow-lg hover:bg-primary-50 hover:border-primary-400 transition-all duration-300 flex items-center justify-center z-10 hover:scale-110"
           title="返回顶部"
         >
           <Rocket size={20} />

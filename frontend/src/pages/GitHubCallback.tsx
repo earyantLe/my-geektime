@@ -45,13 +45,13 @@ export const GitHubCallback: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-primary-100 to-primary-50">
         <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-md text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">登录失败</h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => navigate('/login')}
-            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
           >
             返回登录
           </button>
@@ -61,9 +61,9 @@ export const GitHubCallback: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-primary-100 to-primary-50">
       <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-md text-center">
-        <Loader2 className="w-10 h-10 animate-spin text-purple-600 mx-auto mb-4" />
+        <Loader2 className="w-10 h-10 animate-spin text-primary-600 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-gray-900 mb-2">正在处理 GitHub 登录...</h2>
         <p className="text-gray-500">请稍候</p>
       </div>

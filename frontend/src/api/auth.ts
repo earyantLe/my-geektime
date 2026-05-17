@@ -46,6 +46,10 @@ export interface ConfigData {
   register_types: string[]
   login_types: string[]
   login_guest: {
+    name?: string
+    password?: string
+    email?: string
+  } | {
     type: string
     account: string
     password: string

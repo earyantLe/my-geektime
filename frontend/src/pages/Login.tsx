@@ -50,7 +50,7 @@ export const Login: React.FC = () => {
         setConfig({
           login_types: ['name'],
           register_types: ['name'],
-          login_guest: [],
+          login_guest: {},
           email_login: { enabled: false, verify_code: false },
           github_login: { enabled: false }
         })
@@ -73,18 +73,32 @@ export const Login: React.FC = () => {
   }, [activeTab])
 
   useEffect(() => {
-    if (config?.login_guest && Array.isArray(config.login_guest) && activeTab === 'login') {
-      config.login_guest.forEach((guest: { type: string; account: string; password: string }) => {
-        if (loginMethod === 'name' && guest.type === 'name') {
-          setAccount(guest.account)
-          setPassword(guest.password)
-        } else if (loginMethod === 'email' && guest.type === 'email') {
-          setEmail(guest.account)
-          setPassword(guest.password)
+    if (config?.login_guest && activeTab === 'login') {
+      // 处理对象格式的 login_guest
+      if (typeof config.login_guest === 'object' && !Array.isArray(config.login_guest)) {
+        const guest = config.login_guest as { name?: string; password?: string; email?: string };
+        if (loginMethod === 'name' && guest.name) {
+          setAccount(guest.name);
+          if (guest.password) setPassword(guest.password);
+        } else if (loginMethod === 'email' && guest.email) {
+          setEmail(guest.email);
+          if (guest.password) setPassword(guest.password);
         }
-      })
+      } 
+      // 处理数组格式的 login_guest（向后兼容）
+      else if (Array.isArray(config.login_guest)) {
+        config.login_guest.forEach((guest: { type: string; account: string; password: string }) => {
+          if (loginMethod === 'name' && guest.type === 'name') {
+            setAccount(guest.account);
+            setPassword(guest.password);
+          } else if (loginMethod === 'email' && guest.type === 'email') {
+            setEmail(guest.account);
+            setPassword(guest.password);
+          }
+        });
+      }
     }
-  }, [activeTab, config, loginMethod])
+  }, [activeTab, config, loginMethod]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -202,17 +216,17 @@ export const Login: React.FC = () => {
   const showGitHubLogin = config?.github_login?.enabled
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 relative overflow-hidden">
+    <div className="min-h-screen flex bg-gradient-to-br from-primary-50 via-primary-100 to-primary-50 relative overflow-hidden">
       <Bubble className="w-96 h-96 -top-48 -left-48 animate-pulse" />
       <Bubble className="w-64 h-64 top-1/4 -right-32 animate-bounce" style={{ animationDuration: '3s' }} />
       <Bubble className="w-80 h-80 -bottom-40 left-1/3 animate-pulse" style={{ animationDuration: '4s' }} />
       <Bubble className="w-48 h-48 bottom-1/4 right-1/4 animate-bounce" style={{ animationDuration: '5s' }} />
       
       <div className="hidden lg:flex lg:w-1/2 relative z-10">
-        <div className="max-w-lg mx-auto px-12 py-16 flex flex-col justify-center text-white">
+        <div className="max-w-lg mx-auto px-12 py-16 flex flex-col justify-center text-primary-900">
           <div className="flex items-center gap-4 mb-12">
-            <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl">
-              <BookOpen className="w-10 h-10" />
+            <div className="p-4 bg-primary-600/20 backdrop-blur-sm rounded-2xl">
+              <BookOpen className="w-10 h-10 text-primary-600" />
             </div>
             <h1 className="text-4xl font-bold">我的极客时间</h1>
           </div>
@@ -220,11 +234,11 @@ export const Login: React.FC = () => {
           <h2 className="text-5xl font-bold mb-6 leading-tight">
             让学习成为
             <br />
-            <span className="bg-gradient-to-r from-yellow-200 to-pink-200 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent">
               一种习惯
             </span>
           </h2>
-          <p className="text-white/80 text-xl mb-12 leading-relaxed">
+          <p className="text-primary-700/80 text-xl mb-12 leading-relaxed">
             汇聚行业专家，提供高质量的技术内容。
             无论你是刚入门的新手还是经验丰富的工程师，
             这里都有适合你的学习路径。
@@ -232,30 +246,30 @@ export const Login: React.FC = () => {
 
           <div className="space-y-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                <Sparkles className="w-6 h-6" />
+              <div className="p-3 bg-primary-600/20 backdrop-blur-sm rounded-xl">
+                <Sparkles className="w-6 h-6 text-primary-600" />
               </div>
               <div>
                 <h3 className="font-semibold text-lg">精选内容</h3>
-                <p className="text-white/70">定期更新的技术专栏和实战课程</p>
+                <p className="text-primary-600/70">定期更新的技术专栏和实战课程</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                <Target className="w-6 h-6" />
+              <div className="p-3 bg-primary-600/20 backdrop-blur-sm rounded-xl">
+                <Target className="w-6 h-6 text-primary-600" />
               </div>
               <div>
                 <h3 className="font-semibold text-lg">学习路径</h3>
-                <p className="text-white/70">系统化的课程设计，助你快速成长</p>
+                <p className="text-primary-600/70">系统化的课程设计，助你快速成长</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                <Heart className="w-6 h-6" />
+              <div className="p-3 bg-primary-600/20 backdrop-blur-sm rounded-xl">
+                <Heart className="w-6 h-6 text-primary-600" />
               </div>
               <div>
                 <h3 className="font-semibold text-lg">社区互动</h3>
-                <p className="text-white/70">与技术爱好者共同学习</p>
+                <p className="text-primary-600/70">与技术爱好者共同学习</p>
               </div>
             </div>
           </div>
@@ -267,16 +281,16 @@ export const Login: React.FC = () => {
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8">
             {configLoading ? (
               <div className="flex justify-center items-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
               </div>
             ) : (
               <>
             <div className="lg:hidden flex justify-center mb-8">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-                  <BookOpen className="w-6 h-6 text-white" />
+                <div className="p-3 bg-primary-100 rounded-xl">
+                  <BookOpen className="w-6 h-6 text-primary-600" />
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <span className="text-xl font-bold text-primary-700">
                   我的极客时间
                 </span>
               </div>
@@ -298,7 +312,7 @@ export const Login: React.FC = () => {
                     onClick={() => setLoginMethod('name')}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                       loginMethod === 'name'
-                        ? 'bg-white text-purple-600 shadow-sm'
+                        ? 'bg-white text-primary-600 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -311,7 +325,7 @@ export const Login: React.FC = () => {
                     onClick={() => setLoginMethod('email')}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                       loginMethod === 'email'
-                        ? 'bg-white text-purple-600 shadow-sm'
+                        ? 'bg-white text-primary-600 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -389,7 +403,7 @@ export const Login: React.FC = () => {
                     type="button"
                     onClick={sendCode}
                     disabled={countdown > 0 || sendingCode}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
                     {sendingCode ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -463,7 +477,7 @@ export const Login: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-4 py-3.5 text-base font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full mt-4 py-3.5 text-base font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 border-2 border-primary-200 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -479,9 +493,9 @@ export const Login: React.FC = () => {
             {canRegister && (
               <p className="text-center text-sm text-gray-500 mt-8">
                 {activeTab === 'login' ? (
-                  <>还没有账号？<button onClick={() => setActiveTab('register')} className="text-purple-600 hover:text-purple-700 font-semibold transition-colors">立即注册</button></>
+                  <>还没有账号？<button onClick={() => setActiveTab('register')} className="text-primary-600 hover:text-primary-700 font-semibold transition-colors">立即注册</button></>
                 ) : (
-                  <>已有账号？<button onClick={() => setActiveTab('login')} className="text-purple-600 hover:text-purple-700 font-semibold transition-colors">立即登录</button></>
+                  <>已有账号？<button onClick={() => setActiveTab('login')} className="text-primary-600 hover:text-primary-700 font-semibold transition-colors">立即登录</button></>
                 )}
               </p>
             )}

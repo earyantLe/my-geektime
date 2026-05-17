@@ -355,7 +355,7 @@ export const CaseList: React.FC = () => {
         {detailItem && (
           <div className="space-y-6">
             {/* Article Info Header */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+            <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4">
               <h3 className="text-xl font-bold text-gray-800 mb-3">{detailItem.title}</h3>
               <p className="text-gray-600 mb-3">{detailItem.subtitle}</p>
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -393,7 +393,7 @@ export const CaseList: React.FC = () => {
                 {articleDetail.video?.hls_medias && articleDetail.video.hls_medias.length > 0 && (
                   <div className="mb-4">
                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                      <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                      <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                       视频播放
                     </h4>
                     <video
@@ -414,7 +414,7 @@ export const CaseList: React.FC = () => {
                 {articleDetail.video_preview?.medias && !articleDetail.video?.hls_medias && (
                   <div className="mb-4">
                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                      <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                      <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                       预览视频
                     </h4>
                     <video
@@ -432,7 +432,7 @@ export const CaseList: React.FC = () => {
                 {articleDetail.audio?.url && !articleDetail.video?.hls_medias && !articleDetail.video_preview?.medias && (
                   <div className="mb-4">
                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                      <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                      <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                       音频播放
                     </h4>
                     <audio
@@ -452,7 +452,7 @@ export const CaseList: React.FC = () => {
                 {articleDetail.content && (
                   <div>
                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                      <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                      <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                       文章内容
                     </h4>
                     <div 

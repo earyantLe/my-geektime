@@ -207,9 +207,9 @@ export const LessonDrawer: React.FC<LessonDrawerProps> = ({
 
           {/* Author Introduction */}
           {(taskInfo?.author?.intro || selectedTask?.author?.intro) && (
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+            <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4">
               <h4 className="font-semibold text-gray-700 mb-2 flex items-center">
-                <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                 作者简介
               </h4>
               <p className="text-gray-600 text-sm leading-relaxed">{taskInfo?.author?.intro || selectedTask?.author?.intro}</p>
@@ -220,7 +220,7 @@ export const LessonDrawer: React.FC<LessonDrawerProps> = ({
           {(taskInfo?.intro_html || loadingInfo) && (
             <div>
               <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                <span className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded mr-2"></span>
+                <span className="w-1 h-5 bg-primary-400 rounded mr-2"></span>
                 课程介绍
               </h4>
               {loadingInfo ? (
@@ -297,10 +297,10 @@ export const LessonDrawer: React.FC<LessonDrawerProps> = ({
                           </div>
                           <div className="flex items-center gap-2">
                             {lesson.is_audio && (
-                              <span className="px-2 py-0.5 bg-purple-100 text-purple-600 text-xs rounded">音频</span>
+                              <span className="px-2 py-0.5 bg-primary-100 text-primary-600 text-xs rounded">音频</span>
                             )}
                             {lesson.is_video && (
-                              <span className="px-2 py-0.5 bg-pink-100 text-pink-600 text-xs rounded">视频</span>
+                              <span className="px-2 py-0.5 bg-primary-200 text-primary-700 text-xs rounded">视频</span>
                             )}
                           </div>
                         </div>

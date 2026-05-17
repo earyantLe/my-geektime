@@ -4,8 +4,12 @@ import { useAuthStore } from '@/store/auth'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Layout } from '@/components/Layout'
 import { ToastProvider } from '@/components/ui/Toast'
+import { GlobalLoading } from '@/components/GlobalLoading'
+import { GlobalSettings } from '@/components/GlobalSettings'
+import { initTheme } from '@/utils/theme'
 import { Login } from '@/pages/Login'
 import GitHubCallback from '@/pages/GitHubCallback'
+import { ThemeTest } from '@/pages/ThemeTest'
 
 const TaskList = lazy(() => import('@/pages/TaskList').then(m => ({ default: m.TaskList })))
 const CollectList = lazy(() => import('@/pages/CollectList').then(m => ({ default: m.CollectList })))
@@ -27,10 +31,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     init()
+    // 初始化主题
+    initTheme()
   }, [init])
 
   return (
     <ToastProvider>
+      <GlobalLoading />
+      <GlobalSettings />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/oauth/github/callback" element={<GitHubCallback />} />
@@ -72,6 +80,9 @@ const App: React.FC = () => {
             <Suspense fallback={<LoadingFallback />}>
               <Setting />
             </Suspense>
+          } />
+          <Route path="theme-test" element={
+            <ThemeTest />
           } />
           <Route path="user/list" element={
             <Suspense fallback={<LoadingFallback />}>
