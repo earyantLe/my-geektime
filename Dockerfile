@@ -1,6 +1,6 @@
 FROM golang:1.25 AS builder
 
-ENV GOPROXY="https://goproxy.cn,direct"
+# ENV GOPROXY="https://goproxy.cn,direct"
 ENV CGO_ENABLED=0
 
 WORKDIR /app
