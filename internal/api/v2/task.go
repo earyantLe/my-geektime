@@ -285,12 +285,11 @@ func (t *Task) Retry(c *gin.Context) {
 		}
 		return nil
 	}
-	ids := strings.Split(req.Ids, ",")
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		if len(req.Pid) > 0 {
-			return worker(tx, req.Pid, ids...)
+			return worker(tx, req.Pid, req.Ids...)
 		}
-		for _, id := range ids {
+		for _, id := range req.Ids {
 			if err := worker(tx, id); err != nil {
 				return err
 			}
