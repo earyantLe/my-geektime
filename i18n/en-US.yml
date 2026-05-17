@@ -15,6 +15,7 @@ base:
 
 product:
   no_cookie: "Geek time cookie does not exist or expire, please refresh the cookie!"
+  no_valid_cookie: "Geek time cookie is invalid, please refresh the cookie!"
   api_busy: "The service is busy, please try again later！"
   no_exists_pid: "Non-existent course ID"
 

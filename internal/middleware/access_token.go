@@ -5,23 +5,27 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zkep/my-geektime/internal/global"
-	"github.com/zkep/my-geektime/internal/model"
-	"github.com/zkep/my-geektime/internal/types/user"
+	"github.com/zkep/my-geektime/internal/service"
+	"github.com/zkep/my-geektime/internal/types/geek"
 )
 
 func AccessToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var u model.User
-		if err := global.DB.
-			Where(&model.User{RoleId: user.AdminRoleId}).
-			First(&u).Error; err != nil {
-			c.AbortWithStatusJSON(http.StatusOK, gin.H{
-				"status": http.StatusInternalServerError,
-				"msg":    "no auth ! please refresh geektime cookie. ",
-			})
+		cookie := global.CONF.Site.Cookie.Geektime
+		if cookie == "" {
+			c.Abort()
+			global.JSON(c, http.StatusOK, nil, "product.no_cookie", "")
 			return
 		}
-		c.Set(global.AccessToken, u.AccessToken)
+		var auth geek.AuthResponse
+		if err := service.Authority(cookie, func(r *http.Response) error {
+			_, err := service.GetGeekUser(r, &auth)
+			return err
+		}); err != nil {
+			global.JSON(c, http.StatusOK, nil, "product.no_cookie", "")
+			return
+		}
+		c.Set(global.AccessToken, cookie)
 		c.Next()
 	}
 }

@@ -7,6 +7,7 @@ type Site struct {
 	Login    Login    `json:"login" yaml:"login"`
 	Play     Play     `json:"play" yaml:"play"`
 	Proxy    Proxy    `json:"proxy" yaml:"proxy"`
+	Cookie   Cookie   `json:"cookie" yaml:"cookie"`
 }
 
 type (
@@ -41,5 +42,9 @@ type (
 		ProxyUrl    string   `json:"proxy_url" yaml:"proxy_url"`
 		Cache       bool     `json:"cache" yaml:"cache"`
 		CachePrefix string   `json:"cache_prefix" yaml:"cache_prefix"`
+	}
+
+	Cookie struct {
+		Geektime string `json:"geektime" yaml:"geektime"`
 	}
 )

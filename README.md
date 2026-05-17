@@ -2,15 +2,9 @@
  
 
 ## 我的极客时间
-极客时间课程在线文档，不仅仅是下载器，还是在线文档，支持部署为在线服务
 
----
+不仅是下载器，更是在线文档
 
-* 看 markdown文档，推荐: https://github.com/uaxe/geektime-docs 🌟🌟🌟
-* 看 pdf文档，推荐:  https://github.com/uaxe/geektime-pdfs 🌟🌟🌟
-* 看 音视频，推荐:  https://github.com/zkep/my-geektime 🌟🌟🌟🌟🌟
-
-特点：
  * 支持极客时间VIP账号一次缓存数据，永久观看
  * 支持一键发布整个课程为在线文档
  * 支持一键下载整个课程音视频资源到本地目录
@@ -54,8 +48,6 @@ docker-compose -f docker-compose.yml up -d
 #### 微信赞赏
 
 如若有用，不吝赞赏👏
-
-赞赏会帮大家定期捐给 [北京嫣然天使儿童医院](https://baike.baidu.com/item/%E5%8C%97%E4%BA%AC%E5%B8%82%E6%9C%9D%E9%98%B3%E5%8C%BA%E5%AB%A3%E7%84%B6%E5%A4%A9%E4%BD%BF%E5%84%BF%E7%AB%A5%E5%8C%BB%E9%99%A2)，用于兔唇儿童公益治疗，感谢大家的赞赏, [赞赏公示](https://github.com/zkep/my-geektime/issues/98)
 
 赞赏并留言 <b>邮箱账号</b>，回赠<b> [数据库](https://zkep.github.io/my-geektime/guide/data_default/) </b>
 

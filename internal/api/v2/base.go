@@ -11,9 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/zkep/my-geektime/internal/global"
 	"github.com/zkep/my-geektime/internal/model"
-	"github.com/zkep/my-geektime/internal/service"
 	"github.com/zkep/my-geektime/internal/types/base"
-	"github.com/zkep/my-geektime/internal/types/geek"
 	"github.com/zkep/my-geektime/internal/types/user"
 	"github.com/zkep/my-geektime/libs/utils"
 	"gorm.io/gorm"
@@ -139,25 +137,6 @@ func (b *Base) Register(c *gin.Context) {
 		}
 	default:
 		global.FAIL(c, "base.register.type")
-		return
-	}
-	global.OK(c, nil)
-}
-
-func (b *Base) RefreshCookie(c *gin.Context) {
-	var r base.RefreshCookieRequest
-	if err := c.ShouldBindJSON(&r); err != nil {
-		global.FAIL(c, "fail.msg", err.Error())
-		return
-	}
-	identity := c.GetString(global.Identity)
-	var auth geek.AuthResponse
-	if err := service.Authority(r.Cookie, service.SaveCookie(r.Cookie, identity, &auth)); err != nil {
-		if errors.Is(err, service.ErrorGeekAccountNotLogin) {
-			global.JSON(c, 10002, nil, "product.no_cookie", "")
-		} else {
-			global.FAIL(c, "fail.msg", err.Error())
-		}
 		return
 	}
 	global.OK(c, nil)

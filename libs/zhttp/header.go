@@ -39,7 +39,7 @@ func HttpHeaderMap(h http.Header) map[string]any {
 
 func TypeAndValue(x any) (reflect.Type, reflect.Value) {
 	t, v := reflect.TypeOf(x), reflect.ValueOf(x)
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 		v = v.Elem()
 	}

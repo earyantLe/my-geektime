@@ -1,12 +1,15 @@
 package v2
 
 import (
+	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zkep/my-geektime/internal/config"
 	"github.com/zkep/my-geektime/internal/global"
+	"github.com/zkep/my-geektime/internal/service"
+	"github.com/zkep/my-geektime/internal/types/geek"
 	"github.com/zkep/my-geektime/internal/types/setting"
 	"gopkg.in/yaml.v3"
 )
@@ -29,6 +32,26 @@ func (s *Setting) Update(c *gin.Context) {
 	global.CONF.Site.Play.ProxyUrl = req.SitePlayUrls
 	global.CONF.Site.Proxy.ProxyUrl = req.SiteProxyURL
 	global.CONF.Site.Proxy.Urls = req.SiteProxyUrls
+
+	// Validate the geektime cookie if provided
+	if req.Cookie != "" {
+		var auth geek.AuthResponse
+		if err := service.Authority(req.Cookie, func(r *http.Response) error {
+			_, err := service.GetGeekUser(r, &auth)
+			if err != nil {
+				return err
+			}
+			global.CONF.Site.Cookie.Geektime = req.Cookie
+			return nil
+		}); err != nil {
+			global.FAIL(c, "product.no_valid_cookie")
+			return
+		}
+	} else {
+		// If no cookie provided, clear it from config
+		global.CONF.Site.Cookie.Geektime = ""
+	}
+
 	raw, err := yaml.Marshal(global.CONF)
 	if err != nil {
 		global.FAIL(c, "fail.msg", err)

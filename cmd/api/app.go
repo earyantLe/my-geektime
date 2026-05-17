@@ -123,7 +123,6 @@ func (app *App) newHttpServer(f *config.Config) error {
 	if f.Browser.OpenBrowser {
 		_ = browser.Open(openURL)
 	}
-	fmt.Printf("browser open: %s\n", openURL)
 	return nil
 }
 

@@ -7,4 +7,5 @@ type SettingUpdate struct {
 	SiteCache     bool     `json:"siteCache,omitempty"`
 	SiteProxyUrls []string `json:"siteProxyUrls,omitempty"`
 	SitePlayUrls  []string `json:"sitePlayUrls,omitempty"`
+	Cookie        string   `json:"cookie,omitempty"`
 }

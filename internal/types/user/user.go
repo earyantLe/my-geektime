@@ -49,3 +49,17 @@ type UserStatusRequest struct {
 	// status
 	Status int32 `json:"status,omitempty"`
 }
+
+type UserCreateRequest struct {
+	// user_name
+	UserName string `json:"user_name" binding:"required"`
+	// nick_name
+	NickName string `json:"nick_name" binding:"required"`
+	// password
+	Password string `json:"password" binding:"required"`
+}
+
+type UserDeleteRequest struct {
+	// uid
+	Uid string `json:"uid" binding:"required"`
+}

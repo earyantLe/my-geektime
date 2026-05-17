@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zkep/my-geektime/internal/global"
@@ -30,7 +29,6 @@ func (t *Collect) Create(c *gin.Context) {
 		return
 	}
 	identity := c.GetString(global.Identity)
-	ids := strings.Split(req.Ids, ",")
 	switch req.CollectType {
 	case collect.CollectTask:
 	default:
@@ -38,7 +36,7 @@ func (t *Collect) Create(c *gin.Context) {
 		return
 	}
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
-		for _, id := range ids {
+		for _, id := range req.Ids {
 			item := &model.Collect{
 				Uid:         identity,
 				CollectId:   id,
@@ -195,9 +193,8 @@ func (t *Collect) Delete(c *gin.Context) {
 		global.FAIL(c, "fail.msg", err.Error())
 		return
 	}
-	ids := strings.Split(req.Ids, ",")
-	if len(ids) > 0 {
-		if err := global.DB.Where("id IN ?", ids).Delete(&model.Collect{}).Error; err != nil {
+	if len(req.Ids) > 0 {
+		if err := global.DB.Where("id IN ?", req.Ids).Delete(&model.Collect{}).Error; err != nil {
 			global.FAIL(c, "fail.msg", err.Error())
 			return
 		}

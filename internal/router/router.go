@@ -4,6 +4,7 @@ import (
 	"embed"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
@@ -25,7 +26,17 @@ func NewRouter(assets embed.FS) (*gin.Engine, error) {
 	e.Use(static.Serve("/", ef))
 
 	e.NoRoute(func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/")
+		reqPath := c.Request.URL.Path
+		lastSlash := strings.LastIndex(reqPath, "/")
+		fileName := reqPath[lastSlash+1:]
+		hasExt := strings.Contains(fileName, ".")
+		// 如果没有文件扩展名，认为是页面请求，返回 index.html
+		if !hasExt {
+			c.FileFromFS("/", ef)
+			return
+		}
+		// 静态资源文件不存在，返回 404
+		c.Status(http.StatusNotFound)
 	})
 
 	if global.CONF.Storage.Driver == config.StorageLocal {

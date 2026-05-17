@@ -10,5 +10,7 @@ func user(_, private *gin.RouterGroup) {
 	{
 		private.GET("/user/list", api.List)
 		private.POST("/user/status", api.Status)
+		private.POST("/user/create", api.Create)
+		private.POST("/user/delete", api.Delete)
 	}
 }

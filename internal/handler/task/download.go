@@ -14,7 +14,6 @@ import (
 	"github.com/zkep/my-geektime/internal/service"
 	"github.com/zkep/my-geektime/internal/types/geek"
 	"github.com/zkep/my-geektime/internal/types/task"
-	"github.com/zkep/my-geektime/internal/types/user"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +23,6 @@ var (
 )
 
 func TaskHandler(ctx context.Context, t time.Time) error {
-	global.LOG.Debug("task handler Start", zap.Time("time", t))
 	_, loaded := lock.LoadOrStore(keyLock, t)
 	if loaded {
 		if err := iterators(ctx, true); err != nil {
@@ -36,7 +34,6 @@ func TaskHandler(ctx context.Context, t time.Time) error {
 	if err := iterators(ctx, false); err != nil {
 		global.LOG.Error("task handler iterators", zap.Error(err), zap.Bool("loaded", loaded))
 	}
-	global.LOG.Debug("task handler End", zap.Time("time", time.Now()))
 	return nil
 }
 
@@ -210,18 +207,15 @@ func doArticle(ctx context.Context, x *model.Task) error {
 			global.LOG.Error("worker ParseInt", zap.Error(err), zap.String("taskId", x.TaskId))
 			return err
 		}
-		var u model.User
-		if err = global.DB.Where(&model.User{RoleId: user.AdminRoleId}).First(&u).Error; err != nil {
-			global.LOG.Error("worker User", zap.Error(err), zap.String("taskId", x.TaskId))
-			return err
-		}
-		if u.AccessToken != "" {
+		// 从配置文件中获取极客时间 Cookie
+		accessToken := global.CONF.Site.Cookie.Geektime
+		if accessToken != "" {
 			var auth geek.AuthResponse
-			if err = service.Authority(u.AccessToken, service.SaveCookie(u.AccessToken, u.Uid, &auth)); err != nil {
+			if err = service.Authority(accessToken, service.SaveCookie(accessToken, "", &auth)); err != nil {
 				global.LOG.Error("worker Authority", zap.Error(err), zap.String("taskId", x.TaskId))
 				return err
 			}
-			article, err1 := service.GetArticleInfo(ctx, u.AccessToken, geek.ArticlesInfoRequest{Id: aid})
+			article, err1 := service.GetArticleInfo(ctx, accessToken, geek.ArticlesInfoRequest{Id: aid})
 			if err1 != nil {
 				global.LOG.Error("worker GetArticleInfo", zap.Error(err1), zap.String("taskId", x.TaskId))
 				return err1
@@ -230,7 +224,7 @@ func doArticle(ctx context.Context, x *model.Task) error {
 				global.LOG.Error("worker GetArticleInfo empty",
 					zap.String("taskId", x.TaskId), zap.Int64("articleID", aid))
 			}
-			if err = service.ArticleAllComment(ctx, u.Uid, u.AccessToken, aid); err != nil {
+			if err = service.ArticleAllComment(ctx, "", accessToken, aid); err != nil {
 				global.LOG.Error("worker ArticleAllComment", zap.Error(err), zap.String("taskId", x.TaskId))
 			}
 			data = article.Data
