@@ -11,6 +11,9 @@ base:
     type: "nsupported registration methods"
     exists: "The current account already exists, please log in"
     err_code: "The verification code is incorrect"
+    code_invalid: "Verification code is incorrect or expired"
+  email:
+    send_failed: "Failed to send verification code, please try again later"
 
 
 product:

@@ -324,11 +324,11 @@ export const LessonDrawer: React.FC<LessonDrawerProps> = ({
                   })}
                 </div>
                 </div>
-                {lessonTotal > 9 && (
+                {lessonTotal > 10 && (
                   <div className="flex justify-center pt-4">
                     <Pagination
                       total={lessonTotal}
-                      pageSize={9}
+                      pageSize={10}
                       current={lessonPage}
                       onChange={handleLessonPageChange}
                     />

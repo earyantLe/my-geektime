@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -50,8 +50,8 @@ func (ls *LocalStorage) Name() string { return "local" }
 
 func (ls *LocalStorage) mkdir(key string) (string, error) {
 	key = strings.TrimPrefix(key, ls.directory)
-	objectPath := path.Join(ls.directory, key)
-	objectDir := path.Dir(objectPath)
+	objectPath := filepath.Join(ls.directory, filepath.FromSlash(key))
+	objectDir := filepath.Dir(objectPath)
 	_, err := os.Stat(objectDir)
 	if os.IsNotExist(err) {
 		return objectPath, os.MkdirAll(objectDir, os.ModePerm)
@@ -129,7 +129,7 @@ func (ls *LocalStorage) GetKey(key string, isReal bool) string {
 	}
 	key = strings.TrimPrefix(key, "/")
 	if isReal {
-		return path.Join(ls.directory, key)
+		return filepath.Join(ls.directory, filepath.FromSlash(key))
 	}
 	return fmt.Sprintf("%s%s/%s", ls.prefix, ls.bucket, key)
 }

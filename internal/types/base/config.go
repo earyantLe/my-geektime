@@ -1,12 +1,13 @@
 package base
 
 type Config struct {
-	RegisterType string `json:"register_type"`
-	LoginType    string `json:"login_type"`
-	LoginGuest   Guest  `json:"login_guest"`
+	RegisterTypes []string `json:"register_types"`
+	LoginTypes    []string `json:"login_types"`
+	LoginGuests   []Guest  `json:"login_guests"`
 }
 
 type Guest struct {
-	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Account  string `json:"account"`
 	Password string `json:"password"`
 }

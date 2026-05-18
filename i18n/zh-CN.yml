@@ -11,6 +11,9 @@ base:
     type: "不被支持的注册方式"
     exists: "当前账号已存在，请登录"
     err_code: "验证码不正确"
+    code_invalid: "验证码不正确或已过期"
+  email:
+    send_failed: "发送验证码失败，请稍后重试"
 
 product:
   no_cookie: "极客时间cookie不存在或过期，请在系统设置中配置并【保存】!"

@@ -45,14 +45,10 @@ export const register = (params: RegisterParams) => {
 export interface ConfigData {
   register_types: string[]
   login_types: string[]
-  login_guest: {
-    name?: string
-    password?: string
-    email?: string
-  } | {
+  login_guests: {
     type: string
-    account: string
-    password: string
+    account?: string
+    password?: string
   }[]
   email_login: {
     enabled: boolean

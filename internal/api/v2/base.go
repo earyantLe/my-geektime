@@ -11,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/zkep/my-geektime/internal/global"
 	"github.com/zkep/my-geektime/internal/model"
+	"github.com/zkep/my-geektime/internal/service"
 	"github.com/zkep/my-geektime/internal/types/base"
 	"github.com/zkep/my-geektime/internal/types/user"
 	"github.com/zkep/my-geektime/libs/utils"
@@ -135,6 +136,54 @@ func (b *Base) Register(c *gin.Context) {
 			global.FAIL(c, "fail.msg", err.Error())
 			return
 		}
+	case base.LoginWithEmail:
+		var req base.RegisterWithEmailRequest
+		if err := json.Unmarshal(r.Data, &req); err != nil {
+			global.FAIL(c, "fail.msg", err.Error())
+			return
+		}
+		if err := binding.Validator.ValidateStruct(req); err != nil {
+			global.FAIL(c, "fail.msg", err.Error())
+			return
+		}
+		// 验证邮箱验证码
+		if !service.VerifyCode(req.Email, req.Code) {
+			global.FAIL(c, "base.register.code_invalid")
+			return
+		}
+		// 检查邮箱是否已注册
+		var info model.User
+		if err := global.DB.
+			Where(&model.User{
+				Email:  req.Email,
+				Status: user.UserStatusActive,
+			}).
+			First(&info).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			global.FAIL(c, "fail.msg", err.Error())
+			return
+		}
+		if len(info.Email) > 0 {
+			global.FAIL(c, "base.register.exists")
+			return
+		}
+		var count int64
+		if err := global.DB.Model(&model.User{}).Count(&count).Error; err != nil {
+			global.FAIL(c, "fail.msg", err.Error())
+			return
+		}
+		// first user is admin
+		if count == 0 {
+			info.RoleId = user.AdminRoleId
+		}
+		info.Uid = utils.HalfUUID()
+		info.Email = req.Email
+		info.UserName = req.Email // 使用邮箱作为用户名
+		info.NickName = req.Email
+		info.Password = utils.BcryptHash(req.Password)
+		if err := global.DB.Create(&info).Error; err != nil {
+			global.FAIL(c, "fail.msg", err.Error())
+			return
+		}
 	default:
 		global.FAIL(c, "base.register.type")
 		return
@@ -144,12 +193,53 @@ func (b *Base) Register(c *gin.Context) {
 
 func (b *Base) Config(c *gin.Context) {
 	ret := base.Config{
-		RegisterType: global.CONF.Site.Register.Type,
-		LoginType:    global.CONF.Site.Login.Type,
-		LoginGuest: base.Guest{
-			Name:     global.CONF.Site.Login.Guest.Name,
-			Password: global.CONF.Site.Login.Guest.Password,
-		},
+		RegisterTypes: global.CONF.Site.Register.Types,
+		LoginTypes:    global.CONF.Site.Login.Types,
+		LoginGuests:   []base.Guest{},
 	}
+
+	// 根据配置的登录类型，添加对应的访客账号
+	for _, loginType := range global.CONF.Site.Login.Types {
+		guest := base.Guest{Type: loginType}
+		switch loginType {
+		case "name":
+			guest.Account = global.CONF.Site.Login.Guest.Name.Account
+			guest.Password = global.CONF.Site.Login.Guest.Name.Password
+		case "email":
+			guest.Account = global.CONF.Site.Login.Guest.Email.Account
+			guest.Password = global.CONF.Site.Login.Guest.Email.Password
+		}
+		if guest.Account != "" {
+			ret.LoginGuests = append(ret.LoginGuests, guest)
+		}
+	}
+
 	global.OK(c, ret)
+}
+
+func (b *Base) SendEmailCode(c *gin.Context) {
+	var req base.SendEmailRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		global.FAIL(c, "fail.msg", err.Error())
+		return
+	}
+	if err := binding.Validator.ValidateStruct(req); err != nil {
+		global.FAIL(c, "fail.msg", err.Error())
+		return
+	}
+
+	// 生成验证码
+	emailService := service.NewEmailService()
+	code := emailService.GenerateVerificationCode()
+
+	// 发送验证邮件
+	if err := emailService.SendVerificationEmail(req.Email, code); err != nil {
+		global.FAIL(c, "base.email.send_failed")
+		return
+	}
+
+	// 存储验证码
+	service.StoreVerificationCode(req.Email, code)
+
+	global.OK(c, nil)
 }

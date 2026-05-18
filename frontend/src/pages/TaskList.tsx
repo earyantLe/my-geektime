@@ -161,6 +161,7 @@ export const TaskList: React.FC = () => {
 
   const loadDictData = async () => {
     try {
+      // 首先尝试从数据库获取字典数据
       const res = await getDictTree('geektimeCategory,collectCategory')
       if (res) {
         const categories = res.geektimeCategory || []
@@ -181,7 +182,7 @@ export const TaskList: React.FC = () => {
         setCollectCategory(res.collectCategory || [])
       }
     } catch (error) {
-      console.error('Failed to load dict data', error)
+      console.error('Failed to load dict data from database, trying tags API', error)
     }
   }
 

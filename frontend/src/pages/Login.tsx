@@ -27,6 +27,7 @@ export const Login: React.FC = () => {
   const [sendingCode, setSendingCode] = useState(false)
   const [countdown, setCountdown] = useState(0)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [config, setConfig] = useState<ConfigData | null>(null)
@@ -50,7 +51,7 @@ export const Login: React.FC = () => {
         setConfig({
           login_types: ['name'],
           register_types: ['name'],
-          login_guest: {},
+          login_guests: [],
           email_login: { enabled: false, verify_code: false },
           github_login: { enabled: false }
         })
@@ -69,33 +70,23 @@ export const Login: React.FC = () => {
       setConfirmPassword('')
       setVerificationCode('')
       setError('')
+      setSuccess('')
     }
   }, [activeTab])
 
   useEffect(() => {
-    if (config?.login_guest && activeTab === 'login') {
-      // 处理对象格式的 login_guest
-      if (typeof config.login_guest === 'object' && !Array.isArray(config.login_guest)) {
-        const guest = config.login_guest as { name?: string; password?: string; email?: string };
-        if (loginMethod === 'name' && guest.name) {
-          setAccount(guest.name);
-          if (guest.password) setPassword(guest.password);
-        } else if (loginMethod === 'email' && guest.email) {
-          setEmail(guest.email);
+    if (config?.login_guests && activeTab === 'login') {
+      // 查找与当前登录方式匹配的访客账号
+      const guest = config.login_guests.find(g => g.type === loginMethod);
+      if (guest) {
+        if (guest.account) {
+          if (loginMethod === 'name') {
+            setAccount(guest.account);
+          } else if (loginMethod === 'email') {
+            setEmail(guest.account);
+          }
           if (guest.password) setPassword(guest.password);
         }
-      } 
-      // 处理数组格式的 login_guest（向后兼容）
-      else if (Array.isArray(config.login_guest)) {
-        config.login_guest.forEach((guest: { type: string; account: string; password: string }) => {
-          if (loginMethod === 'name' && guest.type === 'name') {
-            setAccount(guest.account);
-            setPassword(guest.password);
-          } else if (loginMethod === 'email' && guest.type === 'email') {
-            setEmail(guest.account);
-            setPassword(guest.password);
-          }
-        });
       }
     }
   }, [activeTab, config, loginMethod]);
@@ -114,9 +105,11 @@ export const Login: React.FC = () => {
     }
     setSendingCode(true)
     setError('')
+    setSuccess('')
     try {
       await sendEmailCode(email)
       setCountdown(60)
+      setSuccess('验证码已发送到您的邮箱')
     } catch (err: any) {
       setError(err.message || '发送验证码失败')
     } finally {
@@ -127,6 +120,7 @@ export const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
 
     const currentAccount = loginMethod === 'email' ? email : account
     if (!currentAccount || !password) {
@@ -149,14 +143,16 @@ export const Login: React.FC = () => {
       return
     }
 
-    if (activeTab === 'register' && password !== confirmPassword) {
-      setError('两次输入的密码不一致')
-      return
-    }
+    if (activeTab === 'register') {
+      if (password !== confirmPassword) {
+        setError('两次输入的密码不一致')
+        return
+      }
 
-    if (activeTab === 'register' && loginMethod === 'email' && (!verificationCode || verificationCode.length < 6)) {
-      setError('请输入6位验证码')
-      return
+      if (loginMethod === 'email' && (!verificationCode || verificationCode.length !== 6)) {
+        setError('请输入6位验证码')
+        return
+      }
     }
 
     setLoading(true)
@@ -185,21 +181,34 @@ export const Login: React.FC = () => {
           navigate('/')
         }
       } else {
+        // 注册逻辑
         const registerType = loginMethod === 'email' ? 'email' : 'name'
         
         if (registerType === 'email') {
           await register({
             type: 'email',
-            data: { email: currentAccount, code: verificationCode, password },
+            data: { 
+              email: currentAccount, 
+              code: verificationCode, 
+              password 
+            },
           })
         } else {
           await register({
             type: 'name',
-            data: { account: currentAccount, password },
+            data: { 
+              account: currentAccount, 
+              password 
+            },
           })
         }
+        
+        // 注册成功后切换到登录页
+        setSuccess('注册成功！请登录')
         setActiveTab('login')
-        setError('')
+        setPassword('')
+        setConfirmPassword('')
+        setVerificationCode('')
       }
     } catch (err: any) {
       setError(err.message || '操作失败，请重试')
@@ -343,6 +352,13 @@ export const Login: React.FC = () => {
               </div>
             )}
 
+            {success && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span className="text-green-700 text-sm">{success}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-5">
               {loginMethod === 'name' ? (
                 <div className="relative">
@@ -351,7 +367,10 @@ export const Login: React.FC = () => {
                     type="text"
                     placeholder="请输入登录名"
                     value={account}
-                    onFocus={() => setError('')}
+                    onFocus={() => {
+                      setError('')
+                      setSuccess('')
+                    }}
                     onChange={(e) => setAccount(e.target.value)}
                     onBlur={() => {
                       if (!account) return
@@ -372,7 +391,10 @@ export const Login: React.FC = () => {
                     type="email"
                     placeholder="请输入邮箱地址"
                     value={email}
-                    onFocus={() => setError('')}
+                    onFocus={() => {
+                      setError('')
+                      setSuccess('')
+                    }}
                     onChange={(e) => setEmail(e.target.value)}
                     onBlur={() => {
                       if (!email) return
@@ -422,7 +444,10 @@ export const Login: React.FC = () => {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="请输入密码"
                   value={password}
-                  onFocus={() => setError('')}
+                  onFocus={() => {
+                    setError('')
+                    setSuccess('')
+                  }}
                   onChange={(e) => setPassword(e.target.value)}
                   onBlur={() => {
                     if (!password) return
@@ -451,7 +476,10 @@ export const Login: React.FC = () => {
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="请再次输入密码"
                     value={confirmPassword}
-                    onFocus={() => setError('')}
+                    onFocus={() => {
+                      setError('')
+                      setSuccess('')
+                    }}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     onBlur={() => {
                       if (!confirmPassword) return

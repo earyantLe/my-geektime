@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"io"
 	"net/http"
-	"path/filepath"
+	"path"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -30,7 +30,7 @@ func (f *File) Proxy(c *gin.Context) {
 	hash := md5.New()
 	hash.Write([]byte(uri))
 	hashStr := hex.EncodeToString(hash.Sum(nil))
-	cacheKey := filepath.Join(global.CONF.Site.Proxy.CachePrefix, hashStr)
+	cacheKey := path.Join(global.CONF.Site.Proxy.CachePrefix, hashStr)
 	if global.CONF.Site.Proxy.Cache {
 		global.LOG.Info("file.proxy.Get",
 			zap.String("cacheKey", cacheKey),
@@ -38,7 +38,8 @@ func (f *File) Proxy(c *gin.Context) {
 			zap.String("contentType", storage.TypeByExtension(uri)),
 		)
 		if fi, stat, err := global.Storage.Get(cacheKey); err != nil {
-			if !strings.Contains(err.Error(), "no such file or directory") {
+			if !strings.Contains(err.Error(), "no such file or directory") &&
+				!strings.Contains(err.Error(), "The system cannot find the file specified") {
 				global.LOG.Error("file.proxy.Get", zap.Error(err), zap.String("cacheKey", cacheKey))
 				c.DataFromReader(404, 0, "", nil, nil)
 				return
@@ -98,7 +99,7 @@ func (f *File) Proxy(c *gin.Context) {
 		c.DataFromReader(404, 0, "", nil, nil)
 		return
 	}
-	resp.Body = io.NopCloser(bytes.NewReader(bs))
+	// 保存到缓存
 	if global.CONF.Site.Proxy.Cache {
 		go func() {
 			if _, err = global.Storage.Put(cacheKey, io.NopCloser(bytes.NewReader(bs))); err != nil {
@@ -106,5 +107,6 @@ func (f *File) Proxy(c *gin.Context) {
 			}
 		}()
 	}
-	c.DataFromReader(resp.StatusCode, resp.ContentLength, contentType, resp.Body, headers(resp.Header))
+	// 返回响应数据
+	c.DataFromReader(resp.StatusCode, int64(len(bs)), contentType, io.NopCloser(bytes.NewReader(bs)), headers(resp.Header))
 }

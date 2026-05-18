@@ -26,7 +26,7 @@ export const useLessonList = () => {
       setLessonLoading(true)
     }
     try {
-      const params: any = { page, perPage: 9, task_pid: taskId }
+      const params: any = { page, perPage: 10, task_pid: taskId }
       if (filters.xstatus) params.xstatus = filters.xstatus
       if (filters.keywords) params.keywords = filters.keywords
 
@@ -51,7 +51,7 @@ export const useLessonList = () => {
         setLessonLoading(false)
       }
     }
-  }, [lessonList.length])
+  }, [])
 
   const openLessonDrawer = useCallback((item: TaskItem) => {
     setSelectedTask(item)
@@ -69,8 +69,7 @@ export const useLessonList = () => {
 
   const handleLessonPageChange = useCallback((page: number) => {
     if (selectedTask) {
-      setLessonPage(page)
-      loadLessonList(selectedTask.task_id, page, lessonFilters)
+      loadLessonList(selectedTask.task_id, page, lessonFilters, false)
     }
   }, [selectedTask, lessonFilters, loadLessonList])
 

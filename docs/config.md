@@ -46,5 +46,12 @@ site:                      # 站点配置
     urls: # 需要被代理请求的极客时间链接前缀
       - https://static001.geekbang.org/resource/image
       - https://static001.geekbang.org/account/avatar
+  email:   # 邮件配置，用于注册验证码等
+    smtp:
+      host: smtp.example.com  # SMTP服务器地址
+      port: "587"             # SMTP服务器端口
+      username: noreply@example.com  # SMTP用户名
+      password: your_password        # SMTP密码
+      from: noreply@example.com      # 发件人邮箱
 
 ```

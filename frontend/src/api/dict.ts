@@ -20,6 +20,7 @@ export const getDictTree = (key: string) => {
   return request.get<any, Record<string, any[]>>('/sys/dict/tree', { params: { key } })
 }
 
+
 export const createDict = (data: Partial<DictItem>) => {
   return request.post('/sys/dict/create', data)
 }

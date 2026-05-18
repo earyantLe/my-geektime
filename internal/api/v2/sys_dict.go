@@ -285,15 +285,57 @@ func (s *Dict) Tree(c *gin.Context) {
 		return
 	}
 	if len(ls) == 0 {
-		raw, err1 := global.ASSETS.ReadFile("web/pages/tags.json")
+		raw, err1 := global.ASSETS.ReadFile("web/tags.json")
 		if err1 != nil {
 			global.FAIL(c, "fail.msg", err1.Error())
 			return
 		}
-		var tagData sys_dict.TagData
-		if err = json.Unmarshal(raw, &tagData); err != nil {
-			global.FAIL(c, "fail.msg", err1.Error())
+		// tags.json 是数组格式，需要转换为 TagData 结构体
+		var tagArray []map[string]interface{}
+		if err = json.Unmarshal(raw, &tagArray); err != nil {
+			global.FAIL(c, "fail.msg", err.Error())
 			return
+		}
+		// 转换为 TagData 格式
+		tagData := sys_dict.TagData{
+			Data: make([]sys_dict.Tag, 0, len(tagArray)),
+		}
+		for _, item := range tagArray {
+			tag := sys_dict.Tag{
+				Option: sys_dict.Option{
+					Label: item["label"].(string),
+				},
+				Options: make([]sys_dict.Option, 0),
+			}
+			// 处理 value，可能是 float64（JSON 数字）
+			if v, ok := item["value"]; ok {
+				switch val := v.(type) {
+				case float64:
+					tag.Value = int32(val)
+				case int:
+					tag.Value = int32(val)
+				}
+			}
+			// 处理 options
+			if opts, ok := item["options"].([]interface{}); ok {
+				for _, opt := range opts {
+					if optMap, ok := opt.(map[string]interface{}); ok {
+						option := sys_dict.Option{
+							Label: optMap["label"].(string),
+						}
+						if v, ok := optMap["value"]; ok {
+							switch val := v.(type) {
+							case float64:
+								option.Value = int32(val)
+							case int:
+								option.Value = int32(val)
+							}
+						}
+						tag.Options = append(tag.Options, option)
+					}
+				}
+			}
+			tagData.Data = append(tagData.Data, tag)
 		}
 		for _, key := range keys {
 			switch key {

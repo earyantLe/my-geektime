@@ -8,6 +8,7 @@ import { GlobalLoading } from '@/components/GlobalLoading'
 import { GlobalSettings } from '@/components/GlobalSettings'
 import { initTheme } from '@/utils/theme'
 import { Login } from '@/pages/Login'
+import { Register } from '@/pages/Register'
 import GitHubCallback from '@/pages/GitHubCallback'
 import { ThemeTest } from '@/pages/ThemeTest'
 
@@ -41,6 +42,7 @@ const App: React.FC = () => {
       <GlobalSettings />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/oauth/github/callback" element={<GitHubCallback />} />
         <Route
           path="/*"

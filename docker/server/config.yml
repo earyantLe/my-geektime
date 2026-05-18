@@ -27,12 +27,18 @@ site:
   download: false
   cache: false
   register:
-    type: name # name | none
+    types:
+     - name
   login:
-    type: name # email | name
+    types:
+     - name 
     guest:
       name:
-      password:
+        account:
+        password:
+      email:
+        account:
+        password:
   play:
     type: origin  #  origin | local
     proxy_url:
@@ -46,3 +52,10 @@ site:
       - https://static001.geekbang.org/resource/image/*
       - https://static001.geekbang.org/account/avatar/*
       - https://static001.geekbang.org/files/resource/*
+  email:
+    smtp:
+      host: smtp.example.com
+      port: "587"
+      username: noreply@example.com
+      password: your_password
+      from: noreply@example.com
