@@ -369,7 +369,6 @@ type ProductBase struct {
 
 type DowloadRequest struct {
 	Pid int64 `json:"pid,omitempty" binding:"required"`
-	Ids any   `json:"ids,omitempty"`
 }
 
 type DowloadResponse struct {
@@ -507,8 +506,6 @@ type DailyProductRequest struct {
 	LabelID   int32  `json:"label_id" form:"label_id,omitempty"`
 	TopicID   int32  `json:"topic_id" form:"topic_id,omitempty"`
 	Direction int32  `json:"-"  form:"direction"`
-	Page      int    `json:"-" form:"page"`
-	PerPage   int    `json:"-"  form:"perPage"`
 }
 
 type DailyProductResponse struct {

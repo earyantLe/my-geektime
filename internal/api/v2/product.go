@@ -2,10 +2,7 @@ package v2
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zkep/my-geektime/internal/global"
@@ -30,74 +27,49 @@ func (p *Product) Download(c *gin.Context) {
 		global.FAIL(c, "fail.msg", err)
 		return
 	}
-	identity := c.GetString(global.Identity)
 	accessToken := c.GetString(global.AccessToken)
 	if accessToken == "" {
 		global.FAIL(c, "product.no_cookie")
 		return
 	}
-	// check geektime cookie
-	var auth geek.AuthResponse
-	if err := service.Authority(accessToken, service.SaveCookie(accessToken, identity, &auth)); err != nil {
-		if errors.Is(err, service.ErrorGeekAccountNotLogin) {
-			global.JSON(c, 10002, nil, "product.no_cookie", "")
-		} else {
-			global.FAIL(c, "fail.msg", err.Error())
-		}
-		return
-	}
 	articlesMap := make(map[int64]*model.Article, 10)
 	ids := make([]int64, 0, 1)
-	switch x := req.Ids.(type) {
-	case string:
-		for _, v := range strings.Split(x, ",") {
-			i, err := strconv.ParseInt(v, 10, 64)
-			if err != nil {
-				global.FAIL(c, "fail.msg", err)
-				return
-			}
-			ids = append(ids, i)
+	if req.Pid <= 0 {
+		global.FAIL(c, "product.no_exists_pid")
+		return
+	}
+	resp, err := service.GetArticles(c, accessToken,
+		geek.ArticlesListRequest{
+			Cid:   fmt.Sprintf("%d", req.Pid),
+			Order: "earliest",
+			Prev:  1,
+			Size:  500,
+		})
+	if err != nil {
+		global.FailWithError(c, err)
+		return
+	}
+	if len(resp.Data.List) == 0 {
+		global.FAIL(c, "product.api_busy")
+		return
+	}
+	for _, v := range resp.Data.List {
+		if v.ID <= 0 || v.ArticleTitle == "" {
+			continue
 		}
-	case float64:
-		ids = append(ids, int64(x))
-	default:
-		if req.Pid <= 0 {
-			global.FAIL(c, "product.no_exists_pid")
-			return
+		ids = append(ids, v.ID)
+		itemRaw, _ := json.Marshal(v)
+		info := &model.Article{
+			Aid:   fmt.Sprintf("%d", v.ID),
+			Pid:   fmt.Sprintf("%d", req.Pid),
+			Title: v.ArticleTitle,
+			Cover: v.ArticleCover,
+			Raw:   itemRaw,
 		}
-		resp, err := service.GetArticles(c, accessToken,
-			geek.ArticlesListRequest{
-				Cid:   fmt.Sprintf("%d", req.Pid),
-				Order: "earliest",
-				Prev:  1,
-				Size:  500,
-			})
-		if err != nil {
-			global.FailWithError(c, err)
-			return
+		if v.VideoCover != "" && info.Cover == "" {
+			info.Cover = v.VideoCover
 		}
-		if len(resp.Data.List) == 0 {
-			global.FAIL(c, "product.api_busy")
-			return
-		}
-		for _, v := range resp.Data.List {
-			if v.ID <= 0 || v.ArticleTitle == "" {
-				continue
-			}
-			ids = append(ids, v.ID)
-			itemRaw, _ := json.Marshal(v)
-			info := &model.Article{
-				Aid:   fmt.Sprintf("%d", v.ID),
-				Pid:   fmt.Sprintf("%d", req.Pid),
-				Title: v.ArticleTitle,
-				Cover: v.ArticleCover,
-				Raw:   itemRaw,
-			}
-			if v.VideoCover != "" && info.Cover == "" {
-				info.Cover = v.VideoCover
-			}
-			articlesMap[v.ID] = info
-		}
+		articlesMap[v.ID] = info
 	}
 	var product model.Product
 	if err := global.DB.Model(&model.Product{}).
@@ -201,7 +173,7 @@ func (p *Product) Download(c *gin.Context) {
 	if global.CONF.Site.Download {
 		job.Bstatus = service.TASK_STATUS_PENDING
 	}
-	err := global.DB.Transaction(func(tx *gorm.DB) error {
+	err = global.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(job).Error; err != nil {
 			return err
 		}
@@ -216,8 +188,8 @@ func (p *Product) Download(c *gin.Context) {
 		global.FAIL(c, "fail.msg", err.Error())
 		return
 	}
-	resp := geek.DowloadResponse{JobID: jobId}
-	global.OK(c, resp)
+	result := geek.DowloadResponse{JobID: jobId}
+	global.OK(c, result)
 }
 
 func (p *Product) ProductList(c *gin.Context) {
@@ -226,8 +198,14 @@ func (p *Product) ProductList(c *gin.Context) {
 		global.FAIL(c, "fail.msg", err.Error())
 		return
 	}
-	req.Size = req.PerPage
-	accessToken := c.GetString(global.AccessToken)
+	if req.Size <= 0 {
+		req.Size = 20
+	}
+	if req.Prev <= 0 {
+		req.Prev = 1
+	}
+	req.Prev = req.Prev - 1
+	accessToken := global.CONF.Site.Cookie.Geektime
 	resp, err := service.GetProduct(c, accessToken, req)
 	if err != nil {
 		global.FAIL(c, "fail.msg", err.Error())
@@ -289,7 +267,7 @@ func (p *Product) PvipProductList(c *gin.Context) {
 	}
 	req.Size = req.PerPage
 	req.Prev = req.Page
-	accessToken := c.GetString(global.AccessToken)
+	accessToken := global.CONF.Site.Cookie.Geektime
 	ret := geek.ProductListResponse{Rows: make([]geek.ProductListRow, 0)}
 	if len(req.Keyword) > 0 {
 		searchReq := geek.SearchRequest{
@@ -304,6 +282,7 @@ func (p *Product) PvipProductList(c *gin.Context) {
 			global.FAIL(c, "fail.msg", err.Error())
 			return
 		}
+		ret.Count = searchRet.Data.Page.Count
 		if len(searchRet.Data.List) > req.Size {
 			ret.HasNext = true
 			searchRet.Data.List = searchRet.Data.List[:req.Size]

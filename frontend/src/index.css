@@ -224,3 +224,14 @@ body {
   text-decoration: line-through;
   color: #9ca3af;
 }
+
+/* 搜索结果高亮样式 */
+.search-highlight em {
+  color: #dc2626;
+  font-weight: bold;
+  font-style: normal;
+  background: linear-gradient(to right, #fef2f2, #fee2e2);
+  padding: 0 3px;
+  border-radius: 3px;
+  border-bottom: 2px solid #ef4444;
+}

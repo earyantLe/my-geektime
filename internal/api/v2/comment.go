@@ -18,7 +18,7 @@ func (p *Product) ArticleComments(c *gin.Context) {
 	}
 	req.Prev = req.Page
 	identity := c.GetString(global.Identity)
-	accessToken := c.GetString(global.AccessToken)
+	accessToken := global.CONF.Site.Cookie.Geektime
 	resp, err := service.GetArticleComment(c, identity, accessToken, req)
 	if err != nil {
 		global.FAIL(c, "fail.msg", err.Error())

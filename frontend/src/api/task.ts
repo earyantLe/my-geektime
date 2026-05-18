@@ -59,26 +59,77 @@ export const exportTask = (params: { pid: string; type: string }) => {
 }
 
 export interface TaskInfo {
-  id: string
+  task_id: string
+  task_pid?: string
+  other_id?: string
   task_name: string
-  subtitle: string
+  task_type?: string
+  other_type?: number
+  other_tag?: number
+  other_form?: number
+  other_group?: number
   cover: string
+  status?: number
+  statistics?: {
+    count: number
+    items: Record<number, number>
+  }
+  subtitle?: string
   intro_html?: string
+  dir?: string
+  doc?: string
+  object?: string
+  is_video?: boolean
+  is_audio?: boolean
+  is_finish?: boolean
+  sale?: number
+  sale_type?: number
+  share?: any
   author?: {
     name: string
     intro: string
+    avatar?: string
+    brief_html?: string
+    brief?: string
   }
   article?: {
-    count: number
+    id?: number
+    other_id?: string
+    title?: string
+    summary?: string
+    content?: string
+    count?: number
+    count_req?: number
+    count_pub?: number
+    total_length?: number
+    cover?: {
+      default?: string
+      square?: string
+    }
+    video?: {
+      hls_medias?: { url: string }[]
+      cover?: string
+    }
+    video_preview?: {
+      medias?: { url: string }[]
+    }
+    audio?: {
+      url?: string
+      download_url?: string
+    }
   }
-  is_audio?: boolean
-  is_video?: boolean
-  is_finish: boolean
   redirect?: string
 }
 
+export interface TaskInfoResponse {
+  task: TaskInfo
+  article?: any
+  message?: any
+  play_url?: string
+}
+
 export const getTaskInfo = (id: string) => {
-  return request.get<any, TaskInfo>('/task/info', { params: { id } })
+  return request.get<any, TaskInfoResponse>('/task/info', { params: { id } })
 }
 
 export const getArticleComments = (params: { aid: string; page?: number; perPage?: number }) => {

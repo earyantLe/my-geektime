@@ -84,10 +84,10 @@ export const PvipList: React.FC = () => {
       return
     }
     
-    // 非初始化时，标记为用户操作，重置页码并加载第一页数据
-    isUserPageChangeRef.current = true
+    // 非初始化时，重置页码并直接加载第一页数据
     setPrevFilters(filters)
     setPage(1)
+    loadData(1)
   }, [debouncedKeyword, filters.direction, filters.tag, filters.product_type, filters.product_form, filters.sort])
 
   useEffect(() => {
@@ -128,11 +128,12 @@ export const PvipList: React.FC = () => {
     }
   }
 
-  const loadData = async () => {
+  const loadData = async (loadPage?: number) => {
     setLoading(true)
     try {
+      const currentPage = loadPage || page
       const params: any = {
-        page,
+        page: currentPage,
         perPage,
         sort: filters.sort,
         with_articles: true,
@@ -141,7 +142,7 @@ export const PvipList: React.FC = () => {
       if (filters.tag) params.tag = filters.tag
       if (filters.product_type) params.product_type = filters.product_type
       if (filters.product_form) params.product_form = filters.product_form
-      if (filters.keyword) params.keyword = filters.keyword
+      if (debouncedKeyword) params.keyword = debouncedKeyword
 
       const res = await getPvipList(params)
       setItems(res.rows || [])
@@ -163,7 +164,6 @@ export const PvipList: React.FC = () => {
     try {
       await downloadProduct({
         pid: Number(confirmItem.id),
-        ids: '',
       })
       addToast('缓存任务已创建', 'success')
       setShowConfirmModal(false)
@@ -313,6 +313,14 @@ export const PvipList: React.FC = () => {
                 onChange={(e) =>
                   setFilters({ ...filters, keyword: e.target.value })
                 }
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === 'Enter') {
+                    // 按回车键时立即搜索，不等待防抖
+                    setPrevFilters(filters)
+                    setPage(1)
+                    loadData(1)
+                  }
+                }}
               />
             </div>
           </div>
@@ -337,9 +345,10 @@ export const PvipList: React.FC = () => {
                       className="w-16 h-16 rounded object-cover"
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-800 truncate">
-                        {item.title}
-                      </h3>
+                      <div 
+                        className="font-semibold text-gray-800 truncate search-highlight"
+                        dangerouslySetInnerHTML={{ __html: item.title }}
+                      />
                       <p className="text-sm text-gray-500 truncate">
                         {item.subtitle}
                       </p>
@@ -362,7 +371,9 @@ export const PvipList: React.FC = () => {
                       <span className="text-gray-500">价格: </span>
                       {item.sale_type === 6 || item.sale_type === 7
                         ? '免费'
-                        : `¥${(item.sale / 100).toFixed(2)}`}
+                        : item.sale
+                        ? `¥${(item.sale / 100).toFixed(2)}`
+                        : '未知'}
                     </div>
                     <div>
                       <span className="text-gray-500">完结: </span>

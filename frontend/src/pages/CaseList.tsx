@@ -28,6 +28,8 @@ export const CaseList: React.FC = () => {
   const hasLoadedRef = useRef(false)
   // 用于跟踪是否是用户主动改变页码
   const isUserPageChangeRef = useRef(false)
+  // 用于保存上一页返回的 score，用于下一页请求
+  const lastScoreRef = useRef<number>(0)
   const [showCookieModal, setShowCookieModal] = useState(false)
   const [cookie, setCookie] = useState('')
   const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -56,10 +58,12 @@ export const CaseList: React.FC = () => {
       return
     }
     
-    // 非初始化时，标记为用户操作，重置页码并加载第一页数据
-    isUserPageChangeRef.current = true
+    // 非初始化时，筛选条件变化，重置页码、score 并重新加载数据
     setPrevFilters(filters)
     setPage(1)
+    lastScoreRef.current = 0
+    // 直接调用 loadData，不依赖 page 变化触发
+    loadData(1)
   }, [filters.orderby, filters.type])
 
   useEffect(() => {
@@ -75,14 +79,21 @@ export const CaseList: React.FC = () => {
     }
   }, [page, perPage])
 
-  const loadData = async () => {
+  const loadData = async (loadPage?: number) => {
     setLoading(true)
     try {
-      const params: any = { page, perPage, orderby: filters.orderby, type: filters.type }
+      const currentPage = loadPage || page
+      // 第一页时 prev 为页码，第二页开始 prev 为上一页返回的 score
+      const prevValue = currentPage === 1 ? 1 : (lastScoreRef.current || 1)
+      const params: any = { prev: prevValue, size: perPage, orderby: filters.orderby, type: filters.type }
 
       const res = await getProductList(params)
       setItems(res.rows || [])
       setTotalCount(res.count || 0)
+      // 保存返回的 score，用于下一页请求
+      if (res.score) {
+        lastScoreRef.current = res.score
+      }
     } catch (error) {
       console.error('Failed to load products', error)
     } finally {
@@ -100,7 +111,6 @@ export const CaseList: React.FC = () => {
     try {
       await downloadProduct({
         pid: Number(confirmItem.id),
-        ids: confirmItem.article?.id || '',
       })
       addToast('缓存任务已创建', 'success')
       setShowConfirmModal(false)

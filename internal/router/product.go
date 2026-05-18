@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	v2 "github.com/zkep/my-geektime/internal/api/v2"
+	mw "github.com/zkep/my-geektime/internal/middleware"
 )
 
 func product(_, private *gin.RouterGroup) {
@@ -15,6 +16,6 @@ func product(_, private *gin.RouterGroup) {
 		p.GET("/article/info", api.ArticleInfo)
 		p.GET("/article/comments", api.ArticleComments)
 		p.GET("/article/discussions", api.ArticleDiscussion)
-		p.POST("/download", api.Download)
+		p.POST("/download", mw.AccessToken(), api.Download)
 	}
 }

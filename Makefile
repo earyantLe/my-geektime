@@ -1,6 +1,6 @@
 PROJECT:=my-geektime
 
-.PHONY: build
+.PHONY: build web githook run website image all
 
 
 all: build

@@ -182,15 +182,6 @@ func (t *Task) Info(c *gin.Context) {
 	if len(l.Statistics) > 0 {
 		_ = json.Unmarshal(l.Statistics, &statistics)
 	}
-
-	var articleData geek.ArticleData
-	if len(l.Raw) > 0 {
-		if err := json.Unmarshal(l.Raw, &articleData); err != nil {
-			global.FAIL(c, "fail.msg", err.Error())
-			return
-		}
-	}
-
 	var taskMessage task.TaskMessage
 	if len(l.Message) > 0 {
 		_ = json.Unmarshal(l.Message, &taskMessage)
@@ -214,25 +205,52 @@ func (t *Task) Info(c *gin.Context) {
 			OtherForm:  l.OtherForm,
 			OtherGroup: l.OtherGroup,
 		},
-		Article: articleData.Info,
 		Message: taskMessage,
 	}
+
+	switch l.TaskType {
+	case service.TASK_TYPE_PRODUCT:
+		var product geek.ProductBase
+		if len(l.Raw) > 0 {
+			_ = json.Unmarshal(l.Raw, &product)
+		}
+		resp.Task.Author = product.Author
+		resp.Task.Share = product.Share
+		resp.Task.Article = product.Article
+		resp.Task.Subtitle = product.Subtitle
+		resp.Task.IntroHTML = product.IntroHTML
+		resp.Task.IsVideo = product.IsVideo
+		resp.Task.IsAudio = product.IsAudio
+		resp.Task.Sale = product.Price.Sale
+		resp.Task.SaleType = product.Price.SaleType
+		resp.Task.IsAudio = product.IsAudio
+		resp.Task.Redirect = sys_dict.ProductURLWithType(product.Type, product.ID)
+	case service.TASK_TYPE_ARTICLE:
+		var articleData geek.ArticleData
+		if len(l.Raw) > 0 {
+			_ = json.Unmarshal(l.Raw, &articleData)
+		}
+		resp.Task.Author = articleData.Info.Author
+		resp.Task.Subtitle = articleData.Info.Subtitle
+		resp.Task.IsVideo = articleData.Info.IsVideo
+		resp.Article = articleData.Info
+		resp.Article.Cover.Square = service.URLProxyReplace(articleData.Info.Cover.Square)
+		resp.Article.Cover.Default = service.URLProxyReplace(articleData.Info.Cover.Default)
+		resp.Article.Author.Avatar = service.URLProxyReplace(articleData.Info.Author.Avatar)
+		if len(resp.Article.Cshort) > len(resp.Article.Content) {
+			resp.Article.Content = resp.Article.Cshort
+		}
+		resp.Article.Cshort = ""
+		if introHTML, err1 := service.HtmlURLProxyReplace(resp.Article.Content); err1 == nil {
+			resp.Article.Content = introHTML
+		}
+		resp.Task.Redirect = sys_dict.ProductDetailURLWithType(
+			articleData.Product.Type, articleData.Info.Pid, articleData.Info.ID)
+	}
 	resp.Task.Cover = service.URLProxyReplace(resp.Task.Cover)
-	resp.Article.Cover.Square = service.URLProxyReplace(resp.Article.Cover.Square)
-	resp.Article.Cover.Default = service.URLProxyReplace(resp.Article.Cover.Default)
-	resp.Article.Author.Avatar = service.URLProxyReplace(resp.Article.Author.Avatar)
-	if len(resp.Article.Cshort) > len(resp.Article.Content) {
-		resp.Article.Content = resp.Article.Cshort
-	}
-	resp.Article.Cshort = ""
-	if introHTML, err1 := service.HtmlURLProxyReplace(resp.Article.Content); err1 == nil {
-		resp.Article.Content = introHTML
-	}
 	if len(l.Ciphertext) > 0 || len(l.RewriteHls) > 0 {
 		resp.PalyURL = fmt.Sprintf("%s/v2/task/play.m3u8?id=%s", strings.TrimSuffix(global.CONF.Storage.Host, "/"), l.TaskId)
 	}
-	resp.Task.Redirect = sys_dict.ProductDetailURLWithType(
-		articleData.Product.Type, articleData.Info.Pid, articleData.Info.ID)
 	global.OK(c, resp)
 }
 

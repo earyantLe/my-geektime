@@ -15,7 +15,7 @@ func (p *Product) Articles(c *gin.Context) {
 		return
 	}
 	req.Size = 500
-	accessToken := c.GetString(global.AccessToken)
+	accessToken := global.CONF.Site.Cookie.Geektime
 	resp, err := service.GetArticles(c, accessToken, req)
 	if err != nil {
 		global.FAIL(c, "fail.msg", err.Error())
@@ -55,7 +55,7 @@ func (p *Product) ArticleInfo(c *gin.Context) {
 		global.FAIL(c, "fail.msg", err.Error())
 		return
 	}
-	accessToken := c.GetString(global.AccessToken)
+	accessToken := global.CONF.Site.Cookie.Geektime
 	resp, err := service.GetArticleInfo(c, accessToken, req)
 	if err != nil {
 		global.FAIL(c, "fail.msg", err.Error())

@@ -12,9 +12,9 @@ func task(public, private *gin.RouterGroup) {
 	{
 		private.GET("/task/list", api.List)
 		private.GET("/task/info", api.Info)
-		private.GET("/task/download", api.Download, mw.AccessToken())
+		private.GET("/task/download", api.Download)
 		private.DELETE("/task/delete", api.Delete)
-		private.POST("/task/retry", api.Retry)
+		private.POST("/task/retry", mw.AccessToken(), api.Retry)
 		private.GET("/task/export", api.Export)
 		private.GET("/task/article/comments", api.ArticleComments)
 		private.GET("/task/article/discussions", api.ArticleDiscussion)

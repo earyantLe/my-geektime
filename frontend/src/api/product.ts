@@ -47,7 +47,7 @@ export interface ProductItem {
 }
 
 export const getProductList = (params?: ProductListParams) => {
-  return request.get<any, { rows: ProductItem[]; count: number }>('/product/list', { params })
+  return request.get<any, { rows: ProductItem[]; count: number; score?: number; hasNext?: boolean }>('/product/list', { params })
 }
 
 export const getPvipList = (params?: PvipListParams) => {
@@ -79,6 +79,6 @@ export const getArticleDiscussions = (params: { target_id: string; target_type: 
   return request.get('/product/article/discussions', { params })
 }
 
-export const downloadProduct = (params: { pid: number; ids: string }) => {
+export const downloadProduct = (params: { pid: number }) => {
   return request.post('/product/download', params)
 }

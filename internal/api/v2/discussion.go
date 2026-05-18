@@ -19,7 +19,7 @@ func (p *Product) ArticleDiscussion(c *gin.Context) {
 	req.Prev = req.Page
 	req.Size = req.PerPage
 	identity := c.GetString(global.Identity)
-	accessToken := c.GetString(global.AccessToken)
+	accessToken := global.CONF.Site.Cookie.Geektime
 	resp, err := service.GetArticleCommentDiscussion(c, identity, accessToken, req)
 	if err != nil {
 		global.FAIL(c, "fail.msg", err.Error())

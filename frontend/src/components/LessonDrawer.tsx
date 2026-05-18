@@ -83,7 +83,7 @@ export const LessonDrawer: React.FC<LessonDrawerProps> = ({
     setLoadingInfo(true)
     try {
       const res = await getTaskInfo(selectedTask.task_id)
-      setTaskInfo(res)
+      setTaskInfo(res.task)
     } catch (error) {
       console.error('Failed to load task info', error)
     } finally {
@@ -182,7 +182,7 @@ export const LessonDrawer: React.FC<LessonDrawerProps> = ({
                   </div>
                   <div>
                     <span className="text-gray-500">ID: </span>
-                    <span className="font-medium">{taskInfo.id || selectedTask?.task_id}</span>
+                    <span className="font-medium">{taskInfo.task_id || selectedTask?.task_id}</span>
                   </div>
                   <div>
                     <span className="text-gray-500">课程数: </span>

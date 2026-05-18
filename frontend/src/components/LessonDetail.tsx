@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { X, ExternalLink, FileText, ChevronLeft, ChevronRight, Maximize2, Rocket, MessageCircle, ThumbsUp } from 'lucide-react'
-import { getTaskInfo, getArticleComments, getCommentDiscussions } from '@/api/task'
+import { getTaskInfo, getArticleComments, getCommentDiscussions, type TaskInfoResponse } from '@/api/task'
 import type Hls from 'hls.js'
 
 interface LessonDetailProps {
@@ -15,39 +15,6 @@ interface LessonDetailProps {
   hasNext: boolean
 }
 
-interface TaskInfo {
-  other_id: string
-  task: {
-    task_id: string
-    task_name: string
-    redirect?: string
-  }
-  article: {
-    id: string
-    other_id?: string
-    title: string
-    summary: string
-    content: string
-    cover: {
-      default: string
-    }
-    video?: {
-      hls_medias?: { url: string }[]
-      cover?: string
-    }
-    video_preview?: {
-      medias?: { url: string }[]
-    }
-    audio?: {
-      url: string
-    }
-  }
-  message?: {
-    text?: string
-  }
-  play_url?: string
-}
-
 export const LessonDetail: React.FC<LessonDetailProps> = ({
   show,
   taskId,
@@ -58,7 +25,10 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
   hasNext,
 }) => {
   const [loading, setLoading] = useState(false)
-  const [taskInfo, setTaskInfo] = useState<TaskInfo | null>(null)
+  const [taskInfoResponse, setTaskInfoResponse] = useState<TaskInfoResponse | null>(null)
+  const taskInfo = taskInfoResponse?.task || null
+  const article = taskInfoResponse?.article || null
+  const playUrl = taskInfoResponse?.play_url
   const [showFloatingPlayer, setShowFloatingPlayer] = useState(false)
   const [floatingPosition, setFloatingPosition] = useState({ x: 20, y: 80 })
   const [floatingSize, setFloatingSize] = useState({ width: 300, height: 220 })
@@ -66,6 +36,10 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [isResizing, setIsResizing] = useState(false)
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 })
+  const [drawerWidth, setDrawerWidth] = useState<number>(1024) // max-w-4xl = 1024px
+  const isDrawerResizing = useRef(false)
+  const drawerResizeStartX = useRef(0)
+  const drawerResizeStartWidth = useRef(0)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [videoState, setVideoState] = useState({ currentTime: 0, isPlaying: false })
   const [comments, setComments] = useState<any[]>([])
@@ -186,16 +160,11 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
         videoRef.current.currentTime = 0
         videoRef.current.pause()
       }
-      console.log('calling getTaskInfo with:', taskId)
       getTaskInfo(taskId)
-        .then((data: any) => {
-          console.log('taskInfo loaded:', data)
-          console.log('article:', data?.article)
-          setTaskInfo(data)
-          const otherId = data?.other_id || data?.article?.other_id || data?.article?.id
-          console.log('other_id:', otherId)
+        .then((data) => {
+          setTaskInfoResponse(data)
+          const otherId = data.task?.other_id || data.article?.other_id || data.article?.id
           if (otherId) {
-            console.log('loading comments for:', otherId)
             loadComments(otherId, 1)
           }
         })
@@ -303,8 +272,37 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
     })
   }, [floatingSize])
 
+  const handleDrawerResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isDrawerResizing.current = true
+    drawerResizeStartX.current = e.clientX
+    drawerResizeStartWidth.current = drawerWidth
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!isDrawerResizing.current) return
+      const deltaX = drawerResizeStartX.current - moveEvent.clientX // 从左侧拖动，所以是反向
+      const newWidth = drawerResizeStartWidth.current + deltaX
+      const minWidth = 600
+      const maxWidth = window.innerWidth * 0.9
+      setDrawerWidth(Math.min(maxWidth, Math.max(minWidth, newWidth)))
+    }
+
+    const handleMouseUp = () => {
+      isDrawerResizing.current = false
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }, [drawerWidth])
+
   useEffect(() => {
-    if (isDragging || isResizing) {
+    if (isDragging || isResizing || isDrawerResizing.current) {
       window.addEventListener('mousemove', handleMouseMove)
       window.addEventListener('mouseup', handleMouseUp)
       return () => {
@@ -370,21 +368,21 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
 
   const getVideoSrc = () => {
     if (!taskInfo) return null
-    if (taskInfo.play_url) return taskInfo.play_url
-    if (taskInfo.article.video?.hls_medias?.length) {
-      const last = taskInfo.article.video.hls_medias[taskInfo.article.video.hls_medias.length - 1]
+    if (playUrl) return playUrl
+    if (article?.video?.hls_medias?.length) {
+      const last = article.video.hls_medias[article.video.hls_medias.length - 1]
       return last.url
     }
-    if (taskInfo.article.video_preview?.medias?.length) {
-      const last = taskInfo.article.video_preview.medias[taskInfo.article.video_preview.medias.length - 1]
+    if (article?.video_preview?.medias?.length) {
+      const last = article.video_preview.medias[article.video_preview.medias.length - 1]
       return last.url
     }
-    if (taskInfo.article.audio?.url) return taskInfo.article.audio.url
+    if (article?.audio?.url) return article.audio.url
     return null
   }
 
   const videoSrc = getVideoSrc()
-  const poster = taskInfo?.article.cover.default
+  const poster = article?.cover?.default
   
   useEffect(() => {
     const video = videoRef.current
@@ -481,7 +479,7 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
         >
           <div className="bg-gray-800 text-white px-3 py-2 flex items-center justify-between">
             <span className="text-sm font-medium truncate flex-1">
-              {taskInfo?.task.task_name || '播放中'}
+              {taskInfo?.task_name || '播放中'}
             </span>
             <div className="flex items-center gap-1">
               <button
@@ -550,15 +548,26 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
       
       {videoSrc && showFloatingPlayer && renderVideoPlayer()}
 
-      <div className="fixed right-0 top-0 h-full w-full max-w-4xl bg-white shadow-2xl overflow-hidden z-[90]">
+      <div 
+        className="fixed right-0 top-0 h-full bg-white shadow-2xl overflow-hidden z-[90] transition-all duration-300 ease-in-out"
+        style={{ width: drawerWidth }}
+      >
+        {/* 左侧拖拽手柄 */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-4 cursor-col-resize hover:bg-primary-500/20 transition-colors group active:cursor-col-resize z-10"
+          onMouseDown={handleDrawerResizeStart}
+          title="拖动调整宽度"
+        >
+          <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-gray-300 group-hover:bg-primary-500 rounded-full transition-colors" />
+        </div>
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between p-4 border-b border-primary-100 bg-gradient-to-r from-primary-50 to-primary-100">
             <div className="flex-1">
               <h3 className="font-semibold text-gray-800">
-                {taskInfo?.task.task_name || '加载中...'}
+                {taskInfo?.task_name || '加载中...'}
               </h3>
-              {taskInfo?.article.summary && (
-                <p className="text-sm text-gray-500 mt-1">{taskInfo.article.summary}</p>
+              {article?.summary && (
+                <p className="text-sm text-gray-500 mt-1">{article.summary}</p>
               )}
             </div>
             <button
@@ -593,10 +602,10 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
                 )}
 
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {taskInfo.task.redirect && (
+                  {taskInfo?.redirect && (
                     <div className="relative group">
                       <a
-                        href={taskInfo.task.redirect}
+                        href={taskInfo.redirect}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
@@ -647,10 +656,10 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
                   )}
                 </div>
 
-                {taskInfo.article.content && (
+                {article?.content && (
                   <div
                     className="article-content bg-white rounded-lg p-4 border border-gray-100"
-                    dangerouslySetInnerHTML={{ __html: taskInfo.article.content }}
+                    dangerouslySetInnerHTML={{ __html: article.content }}
                   />
                 )}
 
@@ -793,9 +802,9 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
                         <div className="text-center pt-2">
                           <button
                             onClick={() => {
-                              const aid = taskInfo?.other_id || taskInfo?.article?.other_id || taskInfo?.article?.id
+                              const aid = taskInfo?.other_id || article?.other_id || article?.id
                               if (aid) {
-                                loadComments(aid, commentsPage + 1)
+                                loadComments(String(aid), commentsPage + 1)
                               }
                             }}
                             disabled={commentsLoading}
@@ -809,10 +818,10 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
                   )}
                 </div>
 
-                {taskInfo.message?.text && (
+                {taskInfoResponse?.message?.text && (
                   <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
                     <p className="text-sm text-blue-800 whitespace-pre-wrap">
-                      {taskInfo.message.text}
+                      {taskInfoResponse.message.text}
                     </p>
                   </div>
                 )}

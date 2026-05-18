@@ -56,6 +56,7 @@ export const CollectList: React.FC = () => {
     lessonList,
     lessonLoading,
     lessonTotal,
+    lessonPage,
     lessonFilters,
     selectedTask,
     showLessonDrawer,
@@ -63,6 +64,7 @@ export const CollectList: React.FC = () => {
     setLessonFilters,
     openLessonDrawer,
     handleLessonFilter,
+    handleLessonPageChange,
   } = useLessonList()
 
   const user = useAuthStore((state) => state.user)
@@ -582,11 +584,11 @@ export const CollectList: React.FC = () => {
         lessonList={lessonList}
         lessonLoading={lessonLoading}
         lessonTotal={lessonTotal}
-        lessonPage={1}
+        lessonPage={lessonPage}
         lessonFilters={lessonFilters}
         setLessonFilters={setLessonFilters}
         setShowLessonDrawer={setShowLessonDrawer}
-        handleLessonPageChange={() => {}}
+        handleLessonPageChange={handleLessonPageChange}
         handleLessonFilter={handleLessonFilter}
       />
     </div>
