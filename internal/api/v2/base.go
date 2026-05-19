@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,8 +15,10 @@ import (
 	"github.com/zkep/my-geektime/internal/model"
 	"github.com/zkep/my-geektime/internal/service"
 	"github.com/zkep/my-geektime/internal/types/base"
+	"github.com/zkep/my-geektime/internal/types/geek"
 	"github.com/zkep/my-geektime/internal/types/user"
 	"github.com/zkep/my-geektime/libs/utils"
+	"gopkg.in/yaml.v3"
 	"gorm.io/gorm"
 )
 
@@ -241,5 +245,47 @@ func (b *Base) SendEmailCode(c *gin.Context) {
 	// 存储验证码
 	service.StoreVerificationCode(req.Email, code)
 
+	global.OK(c, nil)
+}
+
+func (b *Base) RefreshCookie(c *gin.Context) {
+	var req base.RefreshCookieRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		global.FAIL(c, "fail.msg", err.Error())
+		return
+	}
+	if err := binding.Validator.ValidateStruct(req); err != nil {
+		global.FAIL(c, "fail.msg", err.Error())
+		return
+	}
+	// 验证cookie有效性
+	var auth geek.AuthResponse
+	if err := service.Authority(req.Cookie, func(r *http.Response) error {
+		_, err := service.GetGeekUser(r, &auth)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		global.FAIL(c, "product.no_valid_cookie")
+		return
+	}
+
+	global.CONF.Site.Cookie.Geektime = req.Cookie
+
+	// 保存配置到文件
+	raw, err := yaml.Marshal(global.CONF)
+	if err != nil {
+		global.FAIL(c, "fail.msg", err)
+		return
+	}
+	customConfPath := global.CustomConfigFile
+	if len(global.CONFPath) > 0 {
+		customConfPath = filepath.Join(filepath.Dir(global.CONFPath), global.CustomConfigFile)
+	}
+	if err = os.WriteFile(customConfPath, raw, os.ModePerm); err != nil {
+		global.FAIL(c, "fail.msg", err)
+		return
+	}
 	global.OK(c, nil)
 }

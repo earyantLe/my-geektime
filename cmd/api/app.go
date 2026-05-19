@@ -5,6 +5,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -112,9 +113,31 @@ func (app *App) newHttpServer(f *config.Config) error {
 			global.LOG.Error("listen: ", zap.Error(err))
 		}
 	}()
-	openURL := fmt.Sprintf("http://%s", addr)
+
+	internalIP := getInternalIP()
+	openURL := fmt.Sprintf("http://%s:%d", internalIP, f.Server.HTTPPort)
 	if f.Browser.OpenBrowser {
 		_ = browser.Open(openURL)
 	}
+	fmt.Println()
+	fmt.Println("Open your browser and visit: ")
+	fmt.Println()
+	fmt.Println(openURL)
 	return nil
+}
+
+func getInternalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "127.0.0.1"
+	}
+
+	for _, addr := range addrs {
+		if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+			if ipNet.IP.To4() != nil {
+				return ipNet.IP.String()
+			}
+		}
+	}
+	return "127.0.0.1"
 }

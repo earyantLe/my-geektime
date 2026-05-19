@@ -31,7 +31,7 @@ type SendEmailRequest struct {
 }
 
 type RefreshCookieRequest struct {
-	Cookie string `json:"cookie,omitempty" binding:"required,min=100,max=5000"`
+	Cookie string `json:"cookie,omitempty" binding:"required,min=50,max=5000"`
 }
 
 type User struct {

@@ -184,7 +184,7 @@ export const PvipList: React.FC = () => {
       return
     }
     try {
-      const response = await fetch('/v2/base/refresh/cookie?waitSeconds=3', {
+      const response = await fetch('/v2/base/refresh/cookie', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -198,9 +198,12 @@ export const PvipList: React.FC = () => {
         setShowCookieModal(false)
         setCookie('')
         addToast('Cookie 保存成功', 'success')
+      } else {
+        addToast(data.msg || 'Cookie 保存失败', 'error')
       }
     } catch (error) {
       console.error('Failed to save cookie', error)
+      addToast('Cookie 保存失败，请重试', 'error')
     }
   }
 
