@@ -103,7 +103,8 @@ func (app *App) Docs(f *DocsFlags) error {
 					global.LOG.Error("Docs Unmarshal", zap.Error(err))
 				}
 			}
-			docURL, err := service.MakeDocsite(app.ctx, l.TaskId, product.Title, product.IntroHTML)
+			generator := service.NewGoldmarkGenerator()
+			docURL, err := generator.MakeDocsite(app.ctx, l.TaskId, product.Title, product.IntroHTML)
 			if err != nil {
 				global.LOG.Error("Docs MakeDocsite", zap.Error(err))
 				continue
@@ -190,9 +191,10 @@ func (app *App) LocalDoc(f *DocsFlags) error {
 				}
 				group.Label = service.VerifyFileName(group.Label)
 				product.Title = service.VerifyFileName(product.Title)
-				err = service.MakeDocsiteLocal(app.ctx, l.TaskId, group.Label, product.Title, product.IntroHTML, 15)
+				generator := service.NewGoldmarkGenerator()
+				err = generator.MakeDocsiteLocal(app.ctx, l.TaskId, group.Label, product.Title, product.IntroHTML, 15)
 				if err != nil {
-					global.LOG.Error("Docs MakeDocsite", zap.Error(err))
+					global.LOG.Error("Docs MakeDocsiteLocal", zap.Error(err))
 					continue
 				}
 				dir := path.Join(group.Label, product.Title)

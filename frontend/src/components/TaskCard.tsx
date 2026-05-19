@@ -228,7 +228,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 </div>
               </div>
             )}
-            {isAdmin && item.status === 3 && (
+            {isAdmin && (
               <div className="relative group">
                 <Button
                   variant="light"
@@ -242,7 +242,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   <Download size={14} />
                 </Button>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
-                  重新下载
+                  下载资源
                 </div>
               </div>
             )}

@@ -16,7 +16,7 @@ database:
   # source: host=127.0.0.1 user=postgres password=postgres dbname=mygeektime port=5432 sslmode=disable TimeZone=Asia/Shanghai
   max_idle_conns: 20
   max_open_conns: 100
-storage: # mp4 or mp3 save folder
+storage: 
   driver: local
   directory: repo  # Customize download folder, default to execute repo directory under the directory
   bucket: object

@@ -386,7 +386,12 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
   
   useEffect(() => {
     const video = videoRef.current
-    if (!video || !videoSrc) return
+    if (!video || !videoSrc) {
+      console.log('Video init skipped:', { hasVideo: !!video, hasSrc: !!videoSrc })
+      return
+    }
+    
+    console.log('Initializing video player with src:', videoSrc)
     
     const destroyHls = () => {
       if (hlsRef.current) {
@@ -399,37 +404,65 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
     
     const initHls = async () => {
       if (!videoSrc.includes('.m3u8')) {
+        console.log('Non-HLS video, setting src directly')
         video.src = videoSrc
         return
       }
       
-      if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = videoSrc
-        return
-      }
+      console.log('HLS video detected')
       
       try {
         const HlsModule = await import('hls.js')
         const Hls = HlsModule.default
         
         if (Hls.isSupported()) {
+          console.log('Using hls.js for playback')
           const hls = new Hls({
             enableWorker: true,
-            lowLatencyMode: true
+            lowLatencyMode: true,
+            debug: false
           })
           hlsRef.current = hls
+          
+          hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
+            console.error('HLS error:', data.type, data.details, data)
+            if (data.fatal) {
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  console.error('Fatal network error, trying to recover...')
+                  hls.startLoad()
+                  break
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  console.error('Fatal media error, trying to recover...')
+                  hls.recoverMediaError()
+                  break
+                default:
+                  console.error('Fatal error, cannot recover')
+                  destroyHls()
+                  break
+              }
+            }
+          })
+          
           hls.loadSource(videoSrc)
           hls.attachMedia(video)
+          
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            console.log('HLS manifest loaded')
+            console.log('HLS manifest loaded successfully')
           })
-          hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
-            console.error('HLS error:', data)
-          })
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          // 如果 hls.js 不支持（比如 Safari），再尝试原生 HLS
+          console.warn('hls.js not supported, falling back to native HLS')
+          video.src = videoSrc
+        } else {
+          console.error('No HLS support in this browser')
         }
       } catch (err) {
         console.error('Failed to load hls.js:', err)
-        video.src = videoSrc
+        // 如果 hls.js 加载失败，尝试原生 HLS
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = videoSrc
+        }
       }
     }
     
@@ -819,9 +852,11 @@ export const LessonDetail: React.FC<LessonDetailProps> = ({
                 </div>
 
                 {taskInfoResponse?.message?.text && (
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                    <p className="text-sm text-blue-800 whitespace-pre-wrap">
-                      {taskInfoResponse.message.text}
+                  <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p className="text-sm text-yellow-800 whitespace-pre-wrap">
+                      {taskInfoResponse.message.text.includes('failed') || taskInfoResponse.message.text.includes('error') 
+                        ? '错误：' + taskInfoResponse.message.text 
+                        : '提示：' + taskInfoResponse.message.text}
                     </p>
                   </div>
                 )}

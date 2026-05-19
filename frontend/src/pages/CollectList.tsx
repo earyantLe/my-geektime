@@ -187,9 +187,13 @@ export const CollectList: React.FC = () => {
       addToast('删除成功', 'success')
       setShowDeleteModal(false)
       setDeleteIds([])
-      loadData()
+      // 直接更新本地状态，删除对应的收藏项
+      setItems(prevItems => prevItems.filter(item => !deleteIds.includes(item.id)))
+      // 更新总数
+      setTotal(prev => Math.max(0, prev - deleteIds.length))
     } catch (error) {
       console.error('Failed to delete', error)
+      addToast('删除失败', 'error')
     }
   }
 
@@ -202,12 +206,20 @@ export const CollectList: React.FC = () => {
     if (!retryTaskId) return
     try {
       await retryTask({ pid: retryTaskId, retry: true })
-      addToast('重新下载任务已创建', 'success')
+      addToast('下载任务已创建', 'success')
       setShowRetryModal(false)
       setRetryTaskId('')
-      loadData()
+      // 直接更新本地状态，将该任务的状态改为"处理中"
+      setItems(prevItems => 
+        prevItems.map(item => 
+          item.item.task_id === retryTaskId 
+            ? { ...item, item: { ...item.item, status: 2 } } 
+            : item
+        )
+      )
     } catch (error) {
       console.error('Failed to retry', error)
+      addToast('操作失败', 'error')
     }
   }
 
@@ -222,9 +234,18 @@ export const CollectList: React.FC = () => {
         a.click()
         window.URL.revokeObjectURL(url)
       } else {
-        await exportTask({ pid: taskId, type })
+        const response: any = await exportTask({ pid: taskId, type })
         addToast('文档生成成功', 'success')
-        loadData()
+        // 更新本地状态而不是重新加载整个列表
+        if (response && response.doc) {
+          setItems(prevItems => 
+            prevItems.map(item => 
+              item.item.task_id === taskId 
+                ? { ...item, item: { ...item.item, doc: response.doc } } 
+                : item
+            )
+          )
+        }
       }
     } catch (error) {
       console.error('Failed to export', error)
@@ -422,7 +443,7 @@ export const CollectList: React.FC = () => {
                           <FileText size={14} />
                         </Button>
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
-                          导出
+                          导出Markdown
                         </div>
                       </div>
                       {item.item.doc !== undefined ? (
@@ -466,7 +487,7 @@ export const CollectList: React.FC = () => {
                               <RefreshCw size={14} />
                             </Button>
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
-                              重新下载
+                              下载资源
                             </div>
                           </div>
                           <div className="relative group">

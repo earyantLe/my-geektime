@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"os/exec"
 	"path"
 	"strings"
 	"time"
@@ -18,6 +16,7 @@ import (
 	"github.com/JohannesKaufmann/html-to-markdown/v2/converter"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/zkep/my-geektime/internal/global"
+	"github.com/zkep/my-geektime/libs/m3u8"
 	"github.com/zkep/my-geektime/libs/zhttp"
 	"go.uber.org/zap"
 	"golang.org/x/net/html"
@@ -125,6 +124,7 @@ func RewritePlay(ctx context.Context, req PlayMetaRequest) (*PlayMeta, error) {
 			if er != nil {
 				return nil, er
 			}
+			// Save key file in task-specific subdirectory to avoid concurrent conflicts
 			destName := path.Join(req.Dir, req.Filename, "key.key")
 			meta.KeyPath = global.Storage.GetKey(destName, true)
 			l = fmt.Sprintf(`%s"file://%s"`, sps[0], meta.KeyPath)
@@ -159,102 +159,127 @@ func RewritePlay(ctx context.Context, req PlayMetaRequest) (*PlayMeta, error) {
 	return &meta, nil
 }
 
-func Video(ctx context.Context, dir, fileName string, req *PlayMeta) (string, error) {
-	retryCtx, retryCancel := context.WithTimeout(ctx, time.Minute*10)
-	defer retryCancel()
+func VideoWithM3u8(ctx context.Context, dir, fileName string, req *PlayMeta) (string, error) {
 
 	if len(req.Parts) == 0 {
-		return "", fmt.Errorf("[%s] The parameter is incorrect", fileName)
+		return "", fmt.Errorf("[%s] no video segments available", fileName)
 	}
 
-	if len(req.KeyPath) > 0 {
-		cipher, err1 := base64.StdEncoding.DecodeString(req.Ciphertext)
-		if err1 != nil {
-			global.LOG.Error("video cipher", zap.Error(err1), zap.String("fileName", fileName))
-			return "", err1
-		}
-		if err := os.MkdirAll(path.Dir(req.KeyPath), os.ModePerm); err != nil {
-			return "", err
-		}
-		if err := os.WriteFile(req.KeyPath, cipher, os.ModePerm); err != nil {
-			return "", err
-		}
-		global.LOG.Info("video cipher key", zap.String("KeyPath", req.KeyPath))
+	// Check if merged file already exists (cache check)
+	mergedFile := path.Join(dir, fileName+".ts")
+	if stat, err := global.Storage.Stat(mergedFile); err == nil && stat != nil && stat.Size() > 0 {
+		global.LOG.Info("video already exists, skipping download",
+			zap.String("output", mergedFile))
+		return mergedFile, nil
 	}
 
-	m3u8Path := path.Join(dir, fileName, "index.m3u8")
-	stat, err := global.Storage.Put(m3u8Path, io.NopCloser(bytes.NewBuffer(req.LocalSpec)))
-	if err != nil {
-		return "", err
-	} else if stat.Size() <= 0 {
-		return "", fmt.Errorf("[%s] size is zero", m3u8Path)
-	}
-	destKey := global.Storage.GetKey(m3u8Path, true)
-	destDir := path.Dir(destKey)
-	concatPath := path.Join(path.Dir(destDir), fmt.Sprintf("%s.mp4", fileName))
-	if s, _ := os.Stat(concatPath); s != nil && s.Size() > 0 {
-		_ = os.RemoveAll(destDir)
-		return concatPath, nil
-	}
-	before := func(r *http.Request) {
-		r.Header.Set("Accept", "application/json, text/plain, */*")
-		r.Header.Set("User-Agent", zhttp.RandomUserAgent())
+	// Extract base URL from the first segment URL
+	// The key URI is usually relative to the M3U8 file location
+	firstSegmentURL := req.Parts[0].Src
+	// Get the directory part of the first segment URL as base URL
+	lastSlashIdx := strings.LastIndex(firstSegmentURL, "/")
+	var baseURL string
+	if lastSlashIdx > 0 {
+		baseURL = firstSegmentURL[:lastSlashIdx+1]
+	} else {
+		baseURL = firstSegmentURL
 	}
 
-	after := func(destName string) func(r *http.Response) error {
-		return func(r *http.Response) error {
-			if zhttp.IsHTTPSuccessStatus(r.StatusCode) {
-				if partStat, err1 := global.Storage.Put(destName, r.Body); err1 != nil {
-					return err1
-				} else if partStat.Size() <= 0 {
-					return fmt.Errorf("[%s] is empty", destName)
-				}
-				global.LOG.Info("video part end", zap.String("part", destName))
-				return nil
-			}
-			if zhttp.IsHTTPStatusSleep(r.StatusCode) {
-				time.Sleep(time.Second * 10)
-			}
-			if zhttp.IsHTTPStatusRetryable(r.StatusCode) {
-				return fmt.Errorf("http status: %s, %s", r.Status, r.Request.URL.String())
-			}
-			return zhttp.BreakRetryError(fmt.Errorf(
-				"break http status: %s,%s", r.Status, r.Request.URL.String()))
-		}
-	}
+	// If ciphertext is provided, it must be saved to a local file
+	// Save key in task-specific directory (fileName subdirectory) to avoid concurrent conflicts
+	var keyFilePath string
+	var keyAbsPath string // Absolute path for file:// URI
+	if len(req.Ciphertext) > 0 {
+		// Key file should be in the task-specific subdirectory (same as ts files)
+		keyFilePath = path.Join(dir, fileName, "key.key")
+		// Get absolute path for file:// URI
+		keyAbsPath = global.Storage.GetKey(keyFilePath, true)
 
-	for _, t := range req.Parts {
-		partURL, destName := t.Src, t.Dest
-		if partStat, _ := global.Storage.Stat(destName); partStat != nil && partStat.Size() > 0 {
-			continue
-		}
-		err = zhttp.NewRequest().Before(before).
-			After(after(destName)).DoWithRetry(retryCtx, http.MethodGet, partURL, nil)
+		// Decode base64 ciphertext
+		cipher, err := base64.StdEncoding.DecodeString(req.Ciphertext)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("decode ciphertext failed: %w", err)
+		}
+		// Check if key file already exists before saving
+		if stat, err := global.Storage.Stat(keyFilePath); err == nil && stat != nil && stat.Size() > 0 {
+			global.LOG.Info("key file already exists, skipping save", zap.String("keyPath", keyFilePath))
+		} else {
+			// Save key to the task-specific path
+			keyReader := io.NopCloser(bytes.NewReader(cipher))
+			if _, err := global.Storage.Put(keyFilePath, keyReader); err != nil {
+				return "", fmt.Errorf("save key file failed: %w", err)
+			}
 		}
 	}
 
-	ffmpeg_command := []string{
-		"-allowed_extensions",
-		"ALL",
-		"-protocol_whitelist",
-		"concat,file,http,https,tcp,tls,crypto",
-		"-i",
-		path.Join(destDir, "index.m3u8"),
+	m3u8Data := req.LocalSpec
+	if keyAbsPath != "" {
+		// Modify Spec to use the local key file with absolute path
+		m3u8Content := string(req.Spec)
+		if strings.Contains(m3u8Content, "#EXT-X-KEY:") {
+			lines := strings.Split(m3u8Content, "\n")
+			for i, line := range lines {
+				if strings.HasPrefix(line, "#EXT-X-KEY:") && strings.Contains(line, "URI=") {
+					if idx := strings.Index(line, `URI="`); idx != -1 {
+						endIdx := strings.Index(line[idx+5:], `"`)
+						if endIdx != -1 {
+							oldURI := line[idx+5 : idx+5+endIdx]
+							lines[i] = strings.Replace(line, `URI="`+oldURI+`"`, `URI="file://`+keyAbsPath+`"`, 1)
+						}
+					}
+				}
+			}
+			m3u8Content = strings.Join(lines, "\n")
+		}
+		m3u8Data = []byte(m3u8Content)
 	}
-	if len(req.KeyPath) > 0 {
-		ffmpeg_command = append(ffmpeg_command, "-hls_key_info_file", path.Join(destDir, "key.key"))
+	if len(m3u8Data) == 0 {
+		return "", fmt.Errorf("M3U8 spec content is empty")
 	}
-	ffmpeg_command = append(ffmpeg_command, "-c", "copy", concatPath)
-	global.LOG.Info("video", zap.String("concatPath", concatPath))
-	output, err := exec.CommandContext(retryCtx, "ffmpeg", ffmpeg_command...).CombinedOutput()
+	headers := map[string]string{
+		"Referer": "https://time.geekbang.org",
+		"Origin":  "https://time.geekbang.org",
+	}
+	// Parse M3U8 content directly from bytes
+	result, err := m3u8.ParseFromBytes(ctx, m3u8Data, baseURL, headers)
 	if err != nil {
-		return "", fmt.Errorf("%s,%s", err.Error(), string(output))
+		return "", fmt.Errorf("parse m3u8 content failed: %w", err)
 	}
-	global.LOG.Info("video", zap.String("removeAll", destDir))
-	_ = os.RemoveAll(destDir)
-	return concatPath, nil
+
+	// Configure the M3U8 downloader with parsed result
+	config := m3u8.DownloadConfig{
+		Output:       global.Storage.GetKey(dir, true),
+		ParsedResult: result,
+		Key:          req.Ciphertext,
+		Filename:     fileName,
+		TaskIndex:    fileName, // Use fileName as task identifier for isolated directory
+		Concurrency:  10,
+		Headers:      headers,
+	}
+
+	// Create downloader
+	downloader, err := m3u8.NewDownloaderWithResult(ctx, config)
+	if err != nil {
+		return "", fmt.Errorf("create m3u8 downloader failed: %w", err)
+	}
+
+	// Start download
+	global.LOG.Info("starting M3U8 download",
+		zap.String("output", mergedFile))
+
+	if err := downloader.Start(); err != nil {
+		return "", fmt.Errorf("m3u8 download failed: %w", err)
+	}
+
+	// Verify the file exists
+	if _, err := global.Storage.Stat(mergedFile); err != nil {
+		return "", fmt.Errorf("merged file not found: %w", err)
+	}
+
+	global.LOG.Info("video download completed",
+		zap.String("output", mergedFile))
+
+	return mergedFile, nil
 }
 
 var (

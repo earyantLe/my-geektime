@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -16,7 +15,6 @@ import (
 	"github.com/zkep/my-geektime/internal/initialize"
 	"github.com/zkep/my-geektime/internal/router"
 	"github.com/zkep/my-geektime/libs/browser"
-	"github.com/zkep/my-geektime/libs/color"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -97,12 +95,7 @@ func (app *App) Run(f *Flags) error {
 }
 
 func (app *App) newHttpServer(f *config.Config) error {
-	if err := app.doctorFfmpeg(); err != nil {
-		return err
-	}
-	if err := app.doctorMkdocs(); err != nil {
-		return err
-	}
+
 	addr := fmt.Sprintf("%s:%d", f.Server.HTTPAddr, f.Server.HTTPPort)
 
 	r, err := router.NewRouter(app.assets)
@@ -122,38 +115,6 @@ func (app *App) newHttpServer(f *config.Config) error {
 	openURL := fmt.Sprintf("http://%s", addr)
 	if f.Browser.OpenBrowser {
 		_ = browser.Open(openURL)
-	}
-	return nil
-}
-
-func (app *App) doctorFfmpeg() error {
-	if _, err := exec.LookPath("ffmpeg"); err != nil {
-		fmt.Println("Please install ffmpeg: ")
-		fmt.Println("Ffmpeg will be used for video merging")
-		fmt.Println()
-		fmt.Println(color.Blue("https://ffmpeg.org/download.html"))
-		fmt.Println()
-		return err
-	}
-	return nil
-}
-
-func (app *App) doctorMkdocs() error {
-	if _, err := exec.LookPath("mkdocs"); err != nil {
-		fmt.Println("Please install mkdocs: ")
-		fmt.Println("pip install mkdocs-material")
-		fmt.Println()
-		fmt.Println(color.Blue("https://github.com/mkdocs/mkdocs"))
-		fmt.Println("install mkdocs-material, Please wait .....")
-		name := "pip"
-		if _, pipxErr := exec.LookPath("pipx"); pipxErr == nil {
-			name = "pipx"
-		}
-		err = exec.CommandContext(app.ctx, name, "install", "mkdocs-material").Run()
-		if err != nil {
-			return err
-		}
-		fmt.Println("pip install mkdocs-material succeed")
 	}
 	return nil
 }

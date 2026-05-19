@@ -239,9 +239,18 @@ export const TaskList: React.FC = () => {
         })
     } else {
       exportTask({ pid, type })
-        .then(() => {
+        .then((response: any) => {
           addToast('文档生成成功', 'success')
-          loadData()
+          // 更新本地状态而不是重新加载整个列表
+          if (response && response.doc) {
+            setItems(prevItems => 
+              prevItems.map(item => 
+                item.task_id === pid 
+                  ? { ...item, doc: response.doc } 
+                  : item
+              )
+            )
+          }
         })
         .catch((error) => {
           console.error('Failed to export', error)
@@ -257,13 +266,22 @@ export const TaskList: React.FC = () => {
 
   const handleRetryConfirm = async () => {
     try {
+      const ids = retryParams.ids || (retryParams.pid ? [retryParams.pid] : [])
       await retryTask({ pid: retryParams.pid, ids: retryParams.ids, retry: true })
-      addToast('重新下载任务已创建', 'success')
+      addToast('下载任务已创建', 'success')
       setShowRetryModal(false)
       setRetryParams({})
-      loadData()
+      // 直接更新本地状态，将选中任务的状态改为"处理中"
+      setItems(prevItems => 
+        prevItems.map(item => 
+          ids.includes(item.task_id) 
+            ? { ...item, status: 2 } 
+            : item
+        )
+      )
     } catch (error) {
       console.error('Failed to retry tasks', error)
+      addToast('操作失败', 'error')
     }
   }
 
@@ -279,9 +297,13 @@ export const TaskList: React.FC = () => {
       setShowDeleteModal(false)
       setDeleteIds([])
       setSelectedItems(new Set())
-      loadData()
+      // 直接更新本地状态，删除对应的任务项
+      setItems(prevItems => prevItems.filter(item => !deleteIds.includes(item.task_id)))
+      // 更新总数
+      setTotal(prev => Math.max(0, prev - deleteIds.length))
     } catch (error) {
       console.error('Failed to delete tasks', error)
+      addToast('删除失败', 'error')
     }
   }
 

@@ -399,7 +399,7 @@ func (t *Task) Download(c *gin.Context) {
 		c.Header("Content-Transfer-Encoding", "binary")
 		c.Data(200, "application/octet-stream", []byte(markdown))
 	case "audio", "video":
-		fileName := baseName + ".mp4"
+		fileName := baseName + ".ts"
 		if req.Type == "audio" {
 			fileName = baseName + ".mp3"
 		}
@@ -527,6 +527,8 @@ func (t *Task) Play(c *gin.Context) {
 			}
 			ln = fmt.Sprintf(`%s"%s/v2/task/kms?Ciphertext=%s"`, sps[0], strings.TrimSuffix(global.CONF.Storage.Host, "/"), token)
 		} else if strings.HasSuffix(ln, ".ts") {
+			// 检查是否是远程 URL（在 proxy_url 列表中）
+			isProxyURL := false
 			for _, proxyURL := range global.CONF.Site.Play.ProxyUrl {
 				if strings.HasPrefix(ln, proxyURL) {
 					up, err := url.Parse(ln)
@@ -539,8 +541,14 @@ func (t *Task) Play(c *gin.Context) {
 						ln = up.String()
 					}
 					ln = "/v2/task/play/part?p=" + ln
+					isProxyURL = true
 					break
 				}
+			}
+			// 如果不是远程 URL，则是本地 ts 文件，通过 part 接口提供
+			if !isProxyURL && !strings.HasPrefix(ln, "http") {
+				// 本地 ts 文件，构建完整路径
+				ln = fmt.Sprintf("/v2/task/play/part?id=%s&file=%s", l.TaskId, ln)
 			}
 		}
 		buff.WriteString(ln + "\n")
@@ -643,7 +651,8 @@ func (t *Task) Export(c *gin.Context) {
 	case "markdown":
 		dirName := service.VerifyFileName(product.Title)
 		archiveName := fmt.Sprintf("%s.tar.gz", dirName)
-		buf, err := service.MakeDocArchive(c, l.TaskId, product.Title, product.IntroHTML)
+		generator := service.NewGoldmarkGenerator()
+		buf, err := generator.MakeDocArchive(c, l.TaskId, product.Title, product.IntroHTML)
 		if err != nil {
 			global.FAIL(c, "fail.msg", err.Error())
 			return
@@ -653,7 +662,8 @@ func (t *Task) Export(c *gin.Context) {
 		c.Header("Content-Transfer-Encoding", "binary")
 		c.Data(200, "application/octet-stream", buf.Bytes())
 	case "docsite":
-		docURL, err := service.MakeDocsite(c, l.TaskId, product.Title, product.IntroHTML)
+		generator := service.NewGoldmarkGenerator()
+		docURL, err := generator.MakeDocsite(c, l.TaskId, product.Title, product.IntroHTML)
 		if err != nil {
 			global.FAIL(c, "fail.msg", err.Error())
 			return
@@ -667,6 +677,7 @@ func (t *Task) Export(c *gin.Context) {
 			global.FAIL(c, "fail.msg", err.Error())
 			return
 		}
-		global.OK(c, nil)
+		docFullURL := global.Storage.GetUrl(docURL)
+		global.OK(c, gin.H{"doc": docFullURL})
 	}
 }

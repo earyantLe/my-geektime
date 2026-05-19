@@ -17,6 +17,8 @@ export const ArticleList: React.FC<ArticleListProps> = ({ productId }) => {
   
   // 使用 useRef 来跟踪是否已经加载过数据
   const prevProductIdRef = useRef<string | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const hlsRef = useRef<any>(null)
 
   useEffect(() => {
     // 只有当 productId 真正发生变化时才重新加载数据
@@ -59,6 +61,83 @@ export const ArticleList: React.FC<ArticleListProps> = ({ productId }) => {
       setDetailLoading(false)
     }
   }
+
+  // 初始化 HLS 播放器
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !showArticleDetail) return
+
+    const destroyHls = () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy()
+        hlsRef.current = null
+      }
+    }
+
+    destroyHls()
+
+    const initHls = async () => {
+      // 获取视频源
+      let videoSrc = ''
+      if (articleDetail?.video?.hls_medias?.length) {
+        videoSrc = articleDetail.video.hls_medias[articleDetail.video.hls_medias.length - 1].url
+      } else if (articleDetail?.video_preview?.medias?.length) {
+        videoSrc = articleDetail.video_preview.medias[articleDetail.video_preview.medias.length - 1].url
+      }
+
+      if (!videoSrc || !videoSrc.includes('.m3u8')) {
+        if (videoSrc) {
+          video.src = videoSrc
+        }
+        return
+      }
+
+      try {
+        const HlsModule = await import('hls.js')
+        const Hls = HlsModule.default
+
+        if (Hls.isSupported()) {
+          const hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true,
+            debug: false
+          })
+          hlsRef.current = hls
+
+          hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
+            console.error('ArticleList HLS error:', data.type, data.details, data)
+            if (data.fatal) {
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  hls.startLoad()
+                  break
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  hls.recoverMediaError()
+                  break
+                default:
+                  destroyHls()
+                  break
+              }
+            }
+          })
+
+          hls.loadSource(videoSrc)
+          hls.attachMedia(video)
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = videoSrc
+        }
+      } catch (err) {
+        console.error('Failed to load hls.js in ArticleList:', err)
+        if (videoSrc && video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = videoSrc
+        }
+      }
+    }
+
+    initHls()
+
+    return destroyHls
+  }, [showArticleDetail, articleDetail])
 
   if (loading) {
     return (
@@ -141,26 +220,13 @@ export const ArticleList: React.FC<ArticleListProps> = ({ productId }) => {
               ) : articleDetail ? (
                 <>
                   {/* Video/Audio Player */}
-                  {articleDetail.video?.hls_medias && articleDetail.video.hls_medias.length > 0 && (
+                  {(articleDetail.video?.hls_medias || articleDetail.video_preview?.medias) && (
                     <div className="mb-4">
                       <video
+                        ref={videoRef}
                         controls
                         className="w-full rounded-lg"
                         poster={articleDetail.cover?.default}
-                        src={articleDetail.video.hls_medias[articleDetail.video.hls_medias.length - 1].url}
-                      >
-                        您的浏览器不支持视频播放
-                      </video>
-                    </div>
-                  )}
-                  
-                  {articleDetail.video_preview?.medias && !articleDetail.video?.hls_medias && (
-                    <div className="mb-4">
-                      <video
-                        controls
-                        className="w-full rounded-lg"
-                        poster={articleDetail.cover?.default}
-                        src={articleDetail.video_preview.medias[articleDetail.video_preview.medias.length - 1].url}
                       >
                         您的浏览器不支持视频播放
                       </video>

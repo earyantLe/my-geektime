@@ -133,9 +133,9 @@ func Download(ctx context.Context, x *model.Task, data geek.ArticleData) error {
 		x.Ciphertext = meta.Ciphertext
 		if x.Bstatus > 0 {
 			if data.Info.IsVideo {
-				source, err = Video(ctx, dir, fileName, meta)
+				source, err = VideoWithM3u8(ctx, dir, fileName, meta)
 				if err != nil {
-					global.LOG.Error("download video", zap.Error(err), zap.String("taskId", x.TaskId))
+					global.LOG.Error("download video with m3u8 lib", zap.Error(err), zap.String("taskId", x.TaskId))
 					return err
 				}
 			} else {
